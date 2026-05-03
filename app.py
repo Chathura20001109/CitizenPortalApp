@@ -12,7 +12,7 @@ import json
 import logging
 import secrets
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import re
 from functools import wraps
 import pathlib
@@ -251,7 +251,7 @@ def citizen_required(fn):
         # Check backward compatibility with older date-based tokens (up to 120 days old)
         valid_tokens = [expected]
         for i in range(120):
-            valid_tokens.append(hashlib.sha256(f"{user_id}:{app.secret_key}:{(datetime.now(datetime.UTC) - timedelta(days=i)).date()}".encode()).hexdigest())
+            valid_tokens.append(hashlib.sha256(f"{user_id}:{app.secret_key}:{(datetime.now(timezone.utc) - timedelta(days=i)).date()}".encode()).hexdigest())
         
         if token not in valid_tokens:
             logger.error(f"401 Token mismatch - UserID: {user_id}, Token: {token}")
@@ -349,7 +349,7 @@ def citizen_register():
         "password": hashed,
         "profile": {"basic": {"name": name, "age": age, "phone": phone}},
         "extended_profile": {"interests": interests, "employment": {"job": job, "education": education}},
-        "created": datetime.now(datetime.UTC),
+        "created": datetime.now(timezone.utc),
         "sample_data": False,
         "role": "citizen",
         "active": True,
@@ -360,7 +360,7 @@ def citizen_register():
         "name": name,
         "event": "register",
         "ip": request.remote_addr,
-        "timestamp": datetime.now(datetime.UTC)
+        "timestamp": datetime.now(timezone.utc)
     })
     logger.info(f"New citizen registered: {email}")
     return jsonify({"status": "ok", "message": "Account created successfully."}), 201
@@ -388,7 +388,7 @@ def citizen_login():
             "name": (user.get("profile") or {}).get("basic", {}).get("name", ""),
             "event": "login_failed",
             "ip": request.remote_addr,
-            "timestamp": datetime.now(datetime.UTC)
+            "timestamp": datetime.now(timezone.utc)
         })
         return jsonify({"error": "Incorrect password."}), 401
     user_id = str(user["_id"])
@@ -400,7 +400,7 @@ def citizen_login():
         "name": name,
         "event": "login",
         "ip": request.remote_addr,
-        "timestamp": datetime.now(datetime.UTC)
+        "timestamp": datetime.now(timezone.utc)
     })
     logger.info(f"Citizen login: {email}")
     return jsonify({"status": "ok", "token": token, "user_id": user_id, "name": name})
@@ -418,7 +418,7 @@ def citizen_logout():
         "name": name,
         "event": "logout",
         "ip": request.remote_addr,
-        "timestamp": datetime.now(datetime.UTC)
+        "timestamp": datetime.now(timezone.utc)
     })
     return jsonify({"status": "ok", "message": "Logged out."})
 
@@ -446,7 +446,7 @@ def citizen_update_profile():
     if data.get("job"): updates["extended_profile.employment.job"] = data["job"]
     if data.get("education"): updates["extended_profile.employment.education"] = data["education"]
     if updates:
-        updates["updated"] = datetime.now(datetime.UTC)
+        updates["updated"] = datetime.now(timezone.utc)
         users_col.update_one({"_id": ObjectId(request.citizen_id)}, {"$set": updates})
     return jsonify({"status": "ok", "message": "Profile updated."})
 
@@ -488,7 +488,7 @@ def get_dashboard_analytics():
         if isinstance(created, datetime):
             u["created"] = created.isoformat() + "Z"
         elif not created:
-             u["created"] = datetime.now(datetime.UTC).isoformat() + "Z"
+             u["created"] = datetime.now(timezone.utc).isoformat() + "Z"
 
     # Citizen login stats
     total_logins = citizen_logs_col.count_documents({"event": "login"})
@@ -719,13 +719,13 @@ def create_order():
         return jsonify({"error": "No items in order"}), 400
 
     order = {
-        "order_id": f"ORD-{int(datetime.now(datetime.UTC).timestamp())}",
+        "order_id": f"ORD-{int(datetime.now(timezone.utc).timestamp())}",
         "user_id": data.get("user_id"),
         "items": data.get("items"),
         "amount": data.get("total", 0),
         "customer": data.get("customer", {}),
         "status": "pending",
-        "created": datetime.now(datetime.UTC)
+        "created": datetime.now(timezone.utc)
     }
     orders_col.insert_one(order)
     return jsonify({"status": "ok", "message": "Order placed successfully", "order_id": order["order_id"]})
@@ -942,7 +942,7 @@ class RecommendationEngine:
             score += len(set(interests) & set(ad.get('tags', []))) * 5
             created = ad.get('created')
             if created:
-                days_old = (datetime.now(datetime.UTC) - created).days
+                days_old = (datetime.now(timezone.utc) - created).days
                 score += 5 if days_old < 7 else 2 if days_old < 30 else 0
             scored.append((ad, score))
         scored.sort(key=lambda x: x[1], reverse=True)
@@ -992,7 +992,7 @@ def update_consent():
         "extended_profile.consent.marketing_emails": payload.get("marketing_emails", False),
         "extended_profile.consent.personalized_ads": payload.get("personalized_ads", False),
         "extended_profile.consent.data_analytics": payload.get("data_analytics", False),
-        "extended_profile.consent.updated": datetime.now(datetime.UTC)
+        "extended_profile.consent.updated": datetime.now(timezone.utc)
     }
     users_col.update_one({"_id": ObjectId(user_id)}, {"$set": updates})
     return jsonify({"status": "ok", "message": "Consent updated"})
@@ -1032,7 +1032,7 @@ def delete_user_data(user_id):
 @handle_errors
 def log_engagement():
     data = request.json or {}
-    data["timestamp"] = datetime.now(datetime.UTC)
+    data["timestamp"] = datetime.now(timezone.utc)
     
     user_id = data.get("user_id") or getattr(request, "citizen_id", None)
     if user_id:
@@ -1077,13 +1077,13 @@ def profile_step():
         if existing:
             # Update existing
             user_id = existing["_id"]
-            users_col.update_one({"_id": user_id}, {"$set": {"profile.basic": profile_data, "updated": datetime.now(datetime.UTC)}})
+            users_col.update_one({"_id": user_id}, {"$set": {"profile.basic": profile_data, "updated": datetime.now(timezone.utc)}})
         else:
             # Create new
             res = users_col.insert_one({
                 "email": email,
                 "profile": {"basic": profile_data},
-                "created": datetime.now(datetime.UTC),
+                "created": datetime.now(timezone.utc),
                 "sample_data": False
             })
             user_id = res.inserted_id
@@ -1100,7 +1100,7 @@ def profile_step():
         except:
             return jsonify({"error": "Invalid Profile ID"}), 400
             
-        users_col.update_one({"_id": oid}, {"$set": {f"extended_profile.{step}": profile_data, "updated": datetime.now(datetime.UTC)}})
+        users_col.update_one({"_id": oid}, {"$set": {f"extended_profile.{step}": profile_data, "updated": datetime.now(timezone.utc)}})
         return jsonify({"status": "ok", "step": step})
 
     return jsonify({"error": "Invalid step"}), 400
@@ -1124,8 +1124,8 @@ def process_payment():
         "user_id": data.get("user_id"),
         "method": data.get("method", "card"),
         "status": "completed",
-        "transaction_id": data.get("transaction_id", f"TXN-{int(datetime.now(datetime.UTC).timestamp())}"),
-        "timestamp": datetime.now(datetime.UTC)
+        "transaction_id": data.get("transaction_id", f"TXN-{int(datetime.now(timezone.utc).timestamp())}"),
+        "timestamp": datetime.now(timezone.utc)
     }
     
     payments_col.insert_one(payment_record)
@@ -1140,7 +1140,7 @@ def init_admin_user():
     if admins_col.count_documents({}) == 0:
         pwd = os.getenv("ADMIN_PWD", "admin123")
         hashed = bcrypt.hashpw(pwd.encode("utf-8"), bcrypt.gensalt())
-        admins_col.insert_one({"username": "admin", "email": os.getenv("ADMIN_EMAIL", "admin@example.com"), "password": hashed, "created": datetime.now(datetime.UTC)})
+        admins_col.insert_one({"username": "admin", "email": os.getenv("ADMIN_EMAIL", "admin@example.com"), "password": hashed, "created": datetime.now(timezone.utc)})
         logger.info("Default admin created")
     # Ensure indexes
     try:

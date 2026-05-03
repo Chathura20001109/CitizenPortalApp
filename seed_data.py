@@ -11,7 +11,7 @@ Improvements in this update:
 """
 
 from pymongo import MongoClient, errors
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 import random
 from dotenv import load_dotenv
@@ -93,63 +93,63 @@ def seed_categories():
             "name": {"en": "IT & Digital Services", "si": "තොරතුරු සහ ඩිජිටල්", "ta": "தகவல் மற்றும் டிஜிட்டல்"},
             "ministry_ids": ["ministry_it"],
             "icon": "computer",
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "cat_public",
             "name": {"en": "Public Administration", "si": "පොදු පරිපාලන", "ta": "பொது நிர்வாகம்"},
             "ministry_ids": ["ministry_public"],
             "icon": "government",
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "cat_land",
             "name": {"en": "Land & Housing", "si": "ඉඩම් සහ නිවාස", "ta": "நிலம் மற்றும் வீடுகள்"},
             "ministry_ids": ["ministry_land", "ministry_housing"],
             "icon": "home",
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "cat_education",
             "name": {"en": "Education", "si": "අධ්‍යාපනය", "ta": "கல்வி"},
             "ministry_ids": ["ministry_education"],
             "icon": "school",
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "cat_health",
             "name": {"en": "Health Services", "si": "සෞඛ්‍ය සේවා", "ta": "சுகாதார சேவைகள்"},
             "ministry_ids": ["ministry_health"],
             "icon": "hospital",
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "cat_transport",
             "name": {"en": "Transport & Vehicles", "si": "ප්‍රවාහන සහ වාහන", "ta": "போக்குவரத்து மற்றும் வாகனங்கள்"},
             "ministry_ids": ["ministry_transport"],
             "icon": "car",
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "cat_immigration",
             "name": {"en": "Immigration & Emigration", "si": "ආගමන හා විගමන", "ta": "குடிவரவு மற்றும் குடியகல்வு"},
             "ministry_ids": ["dept_immigration"],
             "icon": "passport",
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "cat_finance",
             "name": {"en": "Finance & Tax", "si": "මුදල් සහ බදු", "ta": "நிதி மற்றும் வரி"},
             "ministry_ids": ["ministry_finance"],
             "icon": "money",
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "cat_agriculture",
             "name": {"en": "Agriculture", "si": "කෘෂිකර්මය", "ta": "விவசாயம்"},
             "ministry_ids": ["ministry_agriculture"],
             "icon": "leaf",
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
     ]
     try:
@@ -199,7 +199,7 @@ def seed_services():
                     ]
                 }
             ],
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "ministry_education",
@@ -230,7 +230,7 @@ def seed_services():
                     ]
                 }
             ],
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "ministry_land",
@@ -249,7 +249,7 @@ def seed_services():
                     ]
                 }
             ],
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "ministry_public",
@@ -272,7 +272,7 @@ def seed_services():
                     ]
                 }
             ],
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "ministry_health",
@@ -290,7 +290,7 @@ def seed_services():
                     ]
                 }
             ],
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "ministry_housing",
@@ -308,7 +308,7 @@ def seed_services():
                     ]
                 }
             ],
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "ministry_transport",
@@ -341,7 +341,7 @@ def seed_services():
                     ]
                 }
             ],
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "dept_immigration",
@@ -365,7 +365,7 @@ def seed_services():
                     ]
                 }
             ],
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "ministry_finance",
@@ -384,7 +384,7 @@ def seed_services():
                     ]
                 }
             ],
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "ministry_agriculture",
@@ -404,7 +404,7 @@ def seed_services():
                     ]
                 }
             ],
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         }
     ]
     try:
@@ -425,7 +425,7 @@ def seed_officers():
             "ministry_id": "ministry_it",
             "contact": {"email": "nayana@it.gov.lk", "phone": "+94 71 234 5678"},
             "office_hours": "Mon-Fri, 9:00 AM - 4:00 PM",
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "off_edu_01",
@@ -433,7 +433,7 @@ def seed_officers():
             "role": "Assistant Secretary - Education",
             "ministry_id": "ministry_education",
             "contact": {"email": "ruwan@edu.gov.lk", "phone": "+94 71 987 6543"},
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         }
     ]
     try:
@@ -457,9 +457,9 @@ def seed_ads():
             "tags": ["degree", "education", "government", "career"],
             "target_segments": ["government_employee", "needs_qualification", "mid_career_family"],
             "image": "/static/img/degree_ad.jpg",
-            "created": datetime.utcnow(),
-            "start_date": datetime.utcnow(),
-            "end_date": datetime.utcnow() + timedelta(days=90)
+            "created": datetime.now(timezone.utc),
+            "start_date": datetime.now(timezone.utc),
+            "end_date": datetime.now(timezone.utc) + timedelta(days=90)
         },
         {
             "id": "ad_ielts_01",
@@ -470,7 +470,7 @@ def seed_ads():
             "priority": "high",
             "tags": ["ielts", "english", "overseas", "language"],
             "target_segments": ["young_adult", "early_career", "overseas_interested"],
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "ad_japan_visa",
@@ -481,7 +481,7 @@ def seed_ads():
             "priority": "medium",
             "tags": ["japan", "visa", "overseas", "it"],
             "target_segments": ["tech_professional", "early_career"],
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "ad_laptop_deal",
@@ -492,7 +492,7 @@ def seed_ads():
             "priority": "medium",
             "tags": ["laptop", "electronics", "government"],
             "target_segments": ["government_employee"],
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "ad_ol_tuition",
@@ -503,7 +503,7 @@ def seed_ads():
             "priority": "high",
             "tags": ["ol", "tuition", "education", "children"],
             "target_segments": ["parent", "secondary_school_parent"],
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         }
     ]
     try:
@@ -541,7 +541,7 @@ def seed_products():
             "delivery_options": ["online", "campus"],
             "rating": 4.5,
             "reviews_count": 47,
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "prod_ielts_01",
@@ -567,7 +567,7 @@ def seed_products():
             "delivery_options": ["online", "classroom"],
             "rating": 4.7,
             "reviews_count": 89,
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "prod_japan_visa_01",
@@ -592,7 +592,7 @@ def seed_products():
             "delivery_options": ["consultation"],
             "rating": 4.3,
             "reviews_count": 34,
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "prod_laptop_01",
@@ -619,7 +619,7 @@ def seed_products():
             "delivery_options": ["delivery", "pickup"],
             "rating": 4.4,
             "reviews_count": 156,
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "prod_saree_01",
@@ -645,7 +645,7 @@ def seed_products():
             "delivery_options": ["delivery", "pickup"],
             "rating": 4.6,
             "reviews_count": 203,
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "prod_ol_tuition",
@@ -671,7 +671,7 @@ def seed_products():
             "delivery_options": ["classroom", "online"],
             "rating": 4.8,
             "reviews_count": 312,
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "prod_slas_01",
@@ -695,7 +695,7 @@ def seed_products():
             "delivery_options": ["classroom", "online"],
             "rating": 4.9,
             "reviews_count": 120,
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "prod_part_time_job_01",
@@ -718,7 +718,7 @@ def seed_products():
             "delivery_options": ["online"],
             "rating": 4.2,
             "reviews_count": 45,
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "prod_kids_coding",
@@ -741,7 +741,7 @@ def seed_products():
             "delivery_options": ["classroom", "online"],
             "rating": 4.8,
             "reviews_count": 78,
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "prod_prof_dev_01",
@@ -764,7 +764,7 @@ def seed_products():
             "delivery_options": ["classroom"],
             "rating": 4.6,
             "reviews_count": 52,
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "prod_solar_panel",
@@ -788,7 +788,7 @@ def seed_products():
             "delivery_options": ["delivery"],
             "rating": 4.7,
             "reviews_count": 89,
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "prod_tax_consultation",
@@ -811,7 +811,7 @@ def seed_products():
             "delivery_options": ["online", "consultation"],
             "rating": 4.9,
             "reviews_count": 210,
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "prod_organic_fert",
@@ -835,7 +835,7 @@ def seed_products():
             "delivery_options": ["pickup"],
             "rating": 4.5,
             "reviews_count": 450,
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         },
         {
             "id": "prod_driver_training",
@@ -858,7 +858,7 @@ def seed_products():
             "delivery_options": ["classroom"],
             "rating": 4.6,
             "reviews_count": 112,
-            "created": datetime.utcnow()
+            "created": datetime.now(timezone.utc)
         }
     ]
     try:
@@ -919,8 +919,8 @@ def seed_sample_users():
                     "data_analytics": True
                 }
             },
-            "created": datetime.utcnow() - timedelta(days=random.randint(1, 365)),
-            "last_active": datetime.utcnow() - timedelta(hours=random.randint(1, 72))
+            "created": datetime.now(timezone.utc) - timedelta(days=random.randint(1, 365)),
+            "last_active": datetime.now(timezone.utc) - timedelta(hours=random.randint(1, 72))
         }
         sample_users.append(user)
 
@@ -958,7 +958,7 @@ def seed_sample_users():
                     "personalized_ads": True
                 }
             },
-            "created": datetime.utcnow() - timedelta(days=random.randint(1, 365))
+            "created": datetime.now(timezone.utc) - timedelta(days=random.randint(1, 365))
         }
         sample_users.append(user)
 
@@ -1002,7 +1002,7 @@ def seed_sample_users():
                     "personalized_ads": True
                 }
             },
-            "created": datetime.utcnow() - timedelta(days=random.randint(1, 365))
+            "created": datetime.now(timezone.utc) - timedelta(days=random.randint(1, 365))
         }
         sample_users.append(user)
 
@@ -1023,7 +1023,7 @@ def ensure_admin():
                 "username": "admin",
                 "email": os.getenv("ADMIN_EMAIL", "admin@example.com"),
                 "password": hashed,
-                "created": datetime.utcnow()
+                "created": datetime.now(timezone.utc)
             })
             print("\n✓ Admin user created (username: admin)")
         except errors.DuplicateKeyError:
