@@ -282,7 +282,14 @@ async function loadProducts() {
 
     try {
         const res = await fetch(`/api/store/products?${params}`);
-        currentProducts = await res.json() || [];
+        let data = await res.json();
+        
+        // Ensure data is an array
+        if (!Array.isArray(data)) {
+            console.warn('API did not return an array, defaulting to empty list');
+            data = [];
+        }
+        currentProducts = data;
 
         // Normalize product ids (accept both db _id-based and explicit id)
         currentProducts = currentProducts.map(p => {

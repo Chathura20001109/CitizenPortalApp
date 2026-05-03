@@ -333,12 +333,22 @@ function renderCategories(autoSelectFirst = false) {
 async function loadCategories() {
     try {
         const data = await fetchJSONWithFallback(API_FALLBACKS.categories);
-        categories = Array.isArray(data) ? data : (data.categories || []);
+        
+        // Handle both array of objects and object with categories array
+        let rawCats = Array.isArray(data) ? data : (data.categories || []);
+        
+        // Normalize: ensure we have an array of objects for renderCategories
+        categories = rawCats.map(c => {
+            if (typeof c === 'string') {
+                return { id: c, name: { en: c.charAt(0).toUpperCase() + c.slice(1) } };
+            }
+            return c;
+        });
 
         // Deduplicate by id
         const seen = new Set();
         categories = categories.filter(c => {
-            if (seen.has(c.id)) return false;
+            if (!c || seen.has(c.id)) return false;
             seen.add(c.id);
             return true;
         });

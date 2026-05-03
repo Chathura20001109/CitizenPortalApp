@@ -623,83 +623,91 @@ def get_ads():
 @handle_errors
 def get_products():
     query = {}
-    category = request.args.get("category")
-    if category:
-        query["category"] = category
+    
+    # Filter by categories (handle comma-separated list from frontend)
+    category_param = request.args.get("category")
+    if category_param:
+        cats = [c.strip() for c in category_param.split(",") if c.strip()]
+        if len(cats) > 1:
+            query["category"] = {"$in": cats}
+        elif len(cats) == 1:
+            query["category"] = cats[0]
+
+    # Filter by search term
+    search = request.args.get("search")
+    if search:
+        query["name"] = {"$regex": search, "$options": "i"}
+
     products = list(products_col.find(query, {"_id": 0}))
     
-    # Recommendation algorithm based on user engagements and profile
     user_id = request.args.get("user_id")
-    if user_id:
-        keywords = []
-        
-        # 1. From Engagements
-        user_engs = list(eng_col.find({"user_id": user_id}))
-        if user_engs:
-            for eng in user_engs:
-                if eng.get("query"): keywords.extend(eng["query"].lower().split())
-                if eng.get("service"): keywords.append(eng["service"].lower())
-                if eng.get("question_clicked"): keywords.extend(eng["question_clicked"].lower().split())
-                if eng.get("desires"): keywords.extend([d.lower() for d in eng["desires"]])
-                
-        # 2. From User Profile
+    # Only perform advanced recommendation if user is provided AND no specific filters are applied
+    # This prevents the N+1 slowness on the store page when fetching counts
+    is_filtered = bool(category_param or search or request.args.get("min_price") or request.args.get("max_price"))
+    
+    if user_id and not is_filtered and AI_AVAILABLE and products:
         try:
-            user = users_col.find_one({"_id": ObjectId(user_id)})
-        except:
-            user = users_col.find_one({"_id": user_id})
+            keywords = []
             
-        if user:
-            # Extended profile
-            ext_prof = user.get("extended_profile", {})
-            job = ext_prof.get("employment", {}).get("job", "")
-            education = ext_prof.get("employment", {}).get("education", "")
-            interests = ext_prof.get("interests", "")
-            if job: keywords.extend(job.lower().split())
-            if education: keywords.extend(education.lower().split())
-            if interests: keywords.extend(interests.lower().replace(",", " ").split())
-            
-            # Basic profile
-            basic_prof = user.get("profile", {}).get("basic", {})
-            age = basic_prof.get("age", "")
-            if age: keywords.append(str(age))
-            
-            keywords = [kw for kw in keywords if len(kw) > 3]
-            
-            # Advanced Recommendation Engine using NLP Embeddings
-            user_text = " ".join([job, education, interests] + keywords).strip()
-            
-            if user_text:
-                try:
-                    # Using Gemini API for embeddings
-                    user_emb = get_embeddings([user_text])
+            # 1. From Engagements
+            user_engs = list(eng_col.find({"user_id": user_id}))
+            if user_engs:
+                for eng in user_engs:
+                    if eng.get("query"): keywords.extend(eng["query"].lower().split())
+                    if eng.get("service"): keywords.append(eng["service"].lower())
+                    if eng.get("question_clicked"): keywords.extend(eng["question_clicked"].lower().split())
+                    if eng.get("desires"): keywords.extend([d.lower() for d in eng["desires"]])
                     
-                    if user_emb is not None:
-                        prod_texts = []
-                        for p in products:
-                            p_text = f"{p.get('name', '')} {p.get('description', '')} {p.get('category', '')} {' '.join(p.get('tags', []))} {' '.join(p.get('target_segments', []))}"
-                            prod_texts.append(p_text)
-                            
-                        prod_embs = get_embeddings(prod_texts)
-                        if prod_embs is not None:
-                            # Using custom cosine_sim
-                            sims = cosine_sim(user_emb, prod_embs)[0]
-                            
-                            for i, p in enumerate(products):
-                                p["recommendation_score"] = float(sims[i]) * 100
+            # 2. From User Profile
+            try:
+                user = users_col.find_one({"_id": ObjectId(user_id)})
+            except:
+                user = users_col.find_one({"_id": user_id})
+                
+            if user:
+                # Extended profile
+                ext_prof = user.get("extended_profile", {})
+                job = ext_prof.get("employment", {}).get("job", "")
+                education = ext_prof.get("employment", {}).get("education", "")
+                interests = ext_prof.get("interests", "")
+                if job: keywords.extend(job.lower().split())
+                if education: keywords.extend(education.lower().split())
+                if interests: keywords.extend(interests.lower().replace(",", " ").split())
+                
+                # Basic profile
+                basic_prof = user.get("profile", {}).get("basic", {})
+                age = basic_prof.get("age", "")
+                if age: keywords.append(str(age))
+                
+                keywords = [kw for kw in keywords if len(kw) > 3]
+                
+                # Advanced Recommendation Engine using NLP Embeddings
+                user_text = " ".join([job, education, interests] + keywords).strip()
+                
+                if user_text:
+                    try:
+                        # Using Gemini API for embeddings
+                        user_emb = get_embeddings([user_text])
+                        
+                        if user_emb is not None:
+                            prod_texts = []
+                            for p in products:
+                                p_text = f"{p.get('name', '')} {p.get('description', '')} {p.get('category', '')} {' '.join(p.get('tags', []))} {' '.join(p.get('target_segments', []))}"
+                                prod_texts.append(p_text)
                                 
-                            products.sort(key=lambda x: x.get("recommendation_score", 0), reverse=True)
-                except Exception as e:
-                    logger.error(f"Error in advanced recommendation algorithm: {e}")
-                    # Fallback to basic keyword matching
-                    for p in products:
-                        score = 0
-                        p_text = f"{p.get('name', '')} {p.get('description', '')} {p.get('category', '')}".lower()
-                        for kw in keywords:
-                            if kw in p_text:
-                                score += 1
-                        p["recommendation_score"] = score
-                    
-                    products.sort(key=lambda x: x.get("recommendation_score", 0), reverse=True)
+                            prod_embs = get_embeddings(prod_texts)
+                            if prod_embs is not None:
+                                # Using custom cosine_sim
+                                sims = cosine_sim(user_emb, prod_embs)[0]
+                                
+                                for i, p in enumerate(products):
+                                    p["recommendation_score"] = float(sims[i]) * 100
+                                    
+                                products.sort(key=lambda x: x.get("recommendation_score", 0), reverse=True)
+                    except Exception as e:
+                        logger.error(f"Error in advanced recommendation algorithm: {e}")
+        except Exception as e:
+            logger.error(f"Recommendation engine error: {e}")
                 
     return jsonify(products)
 
