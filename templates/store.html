@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title data-i18n="store_title">Public Store - Citizen Services</title>
+    <link rel="stylesheet" href="/static/store.css">
+</head>
+
+<body>
+    <header class="store-header" role="banner">
+        <div class="header-content">
+            <h1 data-i18n="store_title">🛒 Public Store</h1>
+            <nav class="header-nav" role="navigation" aria-label="Store navigation">
+                <a href="/" class="back-link" data-i18n="back_link">← Back to Portal</a>
+
+                <div class="store-lang-switch" style="display:inline-flex; gap:5px; margin-right:15px;">
+                    <button onclick="setStoreLang('en')"
+                        style="background:none;border:none;cursor:pointer;color:white;">EN</button>
+                    <button onclick="setStoreLang('si')"
+                        style="background:none;border:none;cursor:pointer;color:white;">SI</button>
+                    <button onclick="setStoreLang('ta')"
+                        style="background:none;border:none;cursor:pointer;color:white;">TA</button>
+                </div>
+
+                <button onclick="viewCart()" class="cart-btn" id="cart-btn" aria-label="Open shopping cart"
+                    data-i18n="cart_btn">
+                    🛒 Cart (<span id="cart-count">0</span>)
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="store-container" role="main">
+        <!-- Filters Sidebar -->
+        <aside class="filters-sidebar" id="filters-sidebar" aria-labelledby="filters-heading">
+            <h3 id="filters-heading" data-i18n="filters_heading">Filters</h3>
+
+            <div class="filter-group" aria-labelledby="categories-heading">
+                <h4 id="categories-heading" data-i18n="cat_heading">Categories</h4>
+                <div id="category-filters" role="group" aria-label="Category filters"></div>
+            </div>
+
+            <div class="filter-group" aria-labelledby="price-heading">
+                <h4 id="price-heading" data-i18n="price_heading">Price Range</h4>
+                <input type="range" id="price-range" min="0" max="500000" step="1000" value="500000"
+                    oninput="updatePriceDisplay()" aria-valuemin="0" aria-valuemax="500000">
+                <div class="price-display" aria-hidden="false">
+                    <span>LKR 0</span> - <span id="max-price-display">500,000</span>
+                </div>
+            </div>
+
+            <div class="filter-group" aria-labelledby="delivery-heading">
+                <h4 id="delivery-heading" data-i18n="delivery_heading">Delivery Options</h4>
+                <label><input type="checkbox" name="delivery" value="delivery"> <span data-i18n="del_home">Home
+                        Delivery</span></label>
+                <label><input type="checkbox" name="delivery" value="pickup"> <span data-i18n="del_pickup">Store
+                        Pickup</span></label>
+                <label><input type="checkbox" name="delivery" value="online"> <span
+                        data-i18n="del_online">Online</span></label>
+            </div>
+
+            <div class="filter-actions" style="margin-top:12px;">
+                <button onclick="applyFilters()" class="btn-apply" type="button" data-i18n="btn_apply">Apply
+                    Filters</button>
+                <button onclick="clearFilters()" class="btn-clear" type="button" data-i18n="btn_clear">Clear
+                    All</button>
+            </div>
+        </aside>
+
+        <!-- Products Grid -->
+        <main class="products-main" id="products-main" aria-live="polite">
+
+            <!-- Advanced Hero Banner -->
+            <div class="store-hero"
+                style="position: relative; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 60px 40px; margin-bottom: 30px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                <!-- Background Image with Overlay -->
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=1200&auto=format&fit=crop') center/cover; z-index: 0; opacity: 0.5;"></div>
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(139, 92, 246, 0.4)); z-index: 1;"></div>
+
+                <div style="position: relative; z-index: 2;">
+                    <h2
+                        style="font-size: 38px; font-weight: 800; color: white; margin-bottom: 15px; letter-spacing: -1px; text-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+                        <span data-i18n="hero_title1">Premium Citizen Services,</span> <br><span data-i18n="hero_title2"
+                            style="color: #60a5fa;">Direct to your door.</span>
+                    </h2>
+                    <p data-i18n="hero_desc"
+                        style="color: #e2e8f0; font-size: 18px; max-width: 500px; line-height: 1.6; text-shadow: 0 2px 8px rgba(0,0,0,0.5);">Access the official
+                        marketplace for fast track logistics, secure processing, and guaranteed public assurance.</p>
+                </div>
+
+            <!-- Trust Banner -->
+            <div class="trust-banner" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-bottom: 40px; padding: 20px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; backdrop-filter: blur(10px);">
+                <div style="flex: 1 1 200px; display: flex; align-items: center; gap: 12px; justify-content: center; text-align: left;">
+                    <span style="font-size: 24px;">🚚</span>
+                    <div style="text-align: left;">
+                        <div style="font-size: 14px; font-weight: 700; color: #e2e8f0;" data-i18n="trust_fast_title">Fast Delivery</div>
+                        <div style="font-size: 11px; color: #94a3b8;" data-i18n="trust_fast_desc">Nationwide coverage</div>
+                    </div>
+                </div>
+                <div style="width: 1px; background: rgba(255,255,255,0.1); display: none;"></div>
+                <div style="flex: 1 1 200px; display: flex; align-items: center; gap: 12px; justify-content: center; text-align: left;">
+                    <span style="font-size: 24px;">🛡️</span>
+                    <div style="text-align: left;">
+                        <div style="font-size: 14px; font-weight: 700; color: #e2e8f0;" data-i18n="trust_gov_title">Gov Verified</div>
+                        <div style="font-size: 11px; color: #94a3b8;" data-i18n="trust_gov_desc">100% Authentic Services</div>
+                    </div>
+                </div>
+                <div style="width: 1px; background: rgba(255,255,255,0.1); display: none;"></div>
+                <div style="flex: 1 1 200px; display: flex; align-items: center; gap: 12px; justify-content: center; text-align: left;">
+                    <span style="font-size: 24px;">🎧</span>
+                    <div style="text-align: left;">
+                        <div style="font-size: 14px; font-weight: 700; color: #e2e8f0;" data-i18n="trust_247_title">24/7 Support</div>
+                        <div style="font-size: 11px; color: #94a3b8;" data-i18n="trust_247_desc">Dedicated citizen helpline</div>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+            <!-- Suggested Products Section -->
+            <div id="suggested-section" style="display:none; margin-bottom: 40px; background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 16px; padding: 24px;">
+                <h2 style="font-size: 22px; font-weight: 700; color: #60a5fa; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">✨ Suggested for You</h2>
+                <div class="products-grid" id="suggested-container" role="list" style="margin-bottom:0;"></div>
+            </div>
+
+            <div class="products-header">
+                <h2 id="products-title" data-i18n="prod_title">Featured Products</h2>
+
+                <div class="search-form" aria-label="Search products">
+                    <input type="text" id="live-search" data-i18n="search_placeholder" placeholder="Search by name..."
+                        oninput="filterStoreClientside()">
+                </div>
+
+                <div class="sort-options" aria-label="Sort products">
+                    <label for="sort-by" class="sr-only">Sort by</label>
+                    <select id="sort-by" onchange="loadProducts()">
+                        <option value="featured" data-i18n="sort_feat">Featured</option>
+                        <option value="price_low" data-i18n="sort_low">Price: Low to High</option>
+                        <option value="price_high" data-i18n="sort_high">Price: High to Low</option>
+                        <option value="rating" data-i18n="sort_rate">Highest Rated</option>
+                        <option value="newest" data-i18n="sort_new">Newest First</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="products-grid" id="products-container" role="list"></div>
+
+            <div class="loading" id="loading" style="display:none;" aria-hidden="true" data-i18n="loading">Loading
+                products...</div>
+        </main>
+    </div>
+
+    <!-- Product Modal -->
+    <div id="product-modal" class="modal" style="display:none;" role="dialog" aria-modal="true"
+        aria-labelledby="product-modal-title" tabindex="-1">
+        <div class="modal-content modal-large">
+            <button class="close" onclick="closeModal()" aria-label="Close product details">&times;</button>
+            <div id="modal-content" aria-live="polite"></div>
+        </div>
+    </div>
+
+    <!-- Cart Modal -->
+    <div id="cart-modal" class="modal" style="display:none;" role="dialog" aria-modal="true"
+        aria-labelledby="cart-modal-title" tabindex="-1">
+        <div class="modal-content">
+            <button class="close" onclick="closeCart()" aria-label="Close cart">&times;</button>
+            <h2 id="cart-modal-title" data-i18n="cart_title">Shopping Cart</h2>
+            <div id="cart-items" aria-live="polite"></div>
+            <div class="cart-total">
+                <strong data-i18n="total">Total:</strong> <strong>LKR <span id="cart-total">0</span></strong>
+            </div>
+            <button onclick="checkout()" class="btn-checkout" type="button" data-i18n="checkout">Proceed to
+                Checkout</button>
+        </div>
+    </div>
+
+    <!-- Payment Sandbox Modal -->
+    <div id="payment-modal" class="modal" style="display:none; z-index: 2000; backdrop-filter: blur(4px);" role="dialog"
+        aria-modal="true" tabindex="-1">
+        <div class="modal-content"
+            style="margin: auto; max-width: 400px; padding: 30px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); background: linear-gradient(to bottom, #ffffff, #f8fafc);">
+            <button class="close" onclick="closePaymentModal()" aria-label="Close payment"
+                style="font-size: 24px;">&times;</button>
+
+            <div style="text-align: center; margin-bottom: 24px;">
+                <div style="font-size: 48px; margin-bottom: 8px;">💳</div>
+                <h2 data-i18n="mock_secure" style="margin: 0; color: #0f172a; font-size: 24px; font-weight: 700;">Secure
+                    Checkout</h2>
+                <div data-i18n="mock_test"
+                    style="display: inline-block; background: #eff6ff; color: #3b82f6; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 8px;">
+                    TEST MODE</div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div>
+                    <label data-i18n="mock_card"
+                        style="display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px;">Card
+                        Number</label>
+                    <input type="text" id="sandbox-card" placeholder="0000 0000 0000 0000" maxlength="19"
+                        style="width: 100%; padding: 12px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-family: monospace; font-size: 16px; outline: none; transition: all 0.2s;"
+                        onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)'"
+                        onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
+                </div>
+                <div style="display: flex; gap: 16px;">
+                    <div style="flex: 1;">
+                        <label data-i18n="mock_exp"
+                            style="display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px;">Expiry
+                            Date</label>
+                        <input type="text" id="sandbox-expiry" placeholder="MM/YY" maxlength="5"
+                            style="width: 100%; padding: 12px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-family: monospace; font-size: 16px; outline: none; transition: all 0.2s;"
+                            onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)'"
+                            onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
+                    </div>
+                    <div style="flex: 1;">
+                        <label data-i18n="mock_cvv"
+                            style="display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px;">CVV</label>
+                        <input type="password" id="sandbox-cvv" placeholder="•••" maxlength="3"
+                            style="width: 100%; padding: 12px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-family: monospace; font-size: 16px; outline: none; transition: all 0.2s; letter-spacing: 2px;"
+                            onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)'"
+                            onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
+                    </div>
+                </div>
+                <div>
+                    <label data-i18n="mock_name"
+                        style="display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px;">Cardholder
+                        Name</label>
+                    <input type="text" id="sandbox-name" placeholder="Name on card"
+                        style="width: 100%; padding: 12px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 15px; outline: none; transition: all 0.2s;"
+                        onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)'"
+                        onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
+                </div>
+            </div>
+
+            <button id="btn-pay-now" onclick="confirmPayment()" type="button"
+                style="margin-top: 28px; background: #3b82f6; color: white; border: none; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);"
+                onmouseover="this.style.background='#2563eb'; this.style.boxShadow='0 6px 8px -1px rgba(59, 130, 246, 0.4)'"
+                onmouseout="this.style.background='#3b82f6'; this.style.boxShadow='0 4px 6px -1px rgba(59, 130, 246, 0.3)'"
+                onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='none'">
+                <strong id="sandbox-amount">Pay LKR 0</strong>
+            </button>
+
+            <div
+                style="text-align: center; margin-top: 16px; display: flex; justify-content: center; gap: 6px; align-items: center;">
+                <svg width="12" height="14" viewBox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M10.5 5.5H11C11.5523 5.5 12 5.94772 12 6.5V13C12 13.5523 11.5523 14 11 14H1C0.447715 14 0 13.5523 0 13V6.5C0 5.94772 0.447715 5.5 1 5.5H1.5V3.5C1.5 1.567 3.067 0 5 0C6.933 0 8.5 1.567 8.5 3.5V5.5H10.5ZM3.5 5.5H8.5V3.5C8.5 2.67157 7.82843 2 7 2C6.17157 2 5.5 2.67157 5.5 3.5V5.5H3.5ZM6 8V11.5C6 11.7761 5.77614 12 5.5 12C5.22386 12 5 11.7761 5 11.5V8C5 7.72386 5.22386 7.5 5.5 7.5C5.77614 7.5 6 7.72386 6 8Z"
+                        fill="#94A3B8" />
+                </svg>
+                <span data-i18n="mock_secured" style="font-size: 12px; color: #64748b; font-weight: 500;">Secured by
+                    Mock Gateway API</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification (aria-live for screen readers) -->
+    <div id="notification" class="notification" role="status" aria-live="polite"></div>
+
+    <script src="/static/store.js" defer></script>
+    <script>
+        // Advanced Client-Side Live Filtration
+        function filterStoreClientside() {
+            const query = document.getElementById('live-search').value.toLowerCase();
+            const cards = document.querySelectorAll('.product-card');
+
+            // Adding a staggered micro-animation entry effect on filter
+            let visibleCount = 0;
+            cards.forEach((card) => {
+                const titleEl = card.querySelector('.product-name');
+                if (titleEl) {
+                    const text = titleEl.textContent.toLowerCase();
+                    if (text.includes(query)) {
+                        card.style.display = 'block';
+                        card.style.animation = `fadeInUp 0.3s ease forwards ${visibleCount * 0.05}s`;
+                        card.style.opacity = '0'; // will fade in
+                        visibleCount++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                }
+            });
+
+            // Keyframe is dynamically added if not exist
+            if (!document.getElementById('advanced-kf')) {
+                const style = document.createElement('style');
+                style.id = 'advanced-kf';
+                style.innerHTML = `@keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`;
+                document.head.appendChild(style);
+            }
+        }
+
+        // Enhance dynamically loaded checkboxes to have better focus
+        document.addEventListener('change', (e) => {
+            if (e.target.type === 'checkbox') {
+                const lbl = e.target.parentElement;
+                if (lbl && lbl.tagName === 'LABEL') {
+                    lbl.style.color = e.target.checked ? '#60a5fa' : '';
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

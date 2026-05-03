@@ -1,0 +1,13 @@
+# Core Flask Dependencies
+Flask==3.0.0
+flask-cors==4.0.0
+python-dotenv==1.0.0
+pymongo[srv]==4.6.0
+dnspython==2.4.2
+
+# Authentication & Security
+bcrypt==4.1.2
+
+# AI & Machine Learning (Lightweight API-based)
+google-generativeai==0.4.0
+numpy==1.26.4

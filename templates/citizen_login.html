@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citizen Login - Government of Sri Lanka</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1e40af;
+            --secondary: #3b82f6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #f0f4ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 40%, #3b82f6 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.97);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 440px;
+            overflow: hidden;
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 28px 32px 24px;
+            text-align: center;
+            color: white;
+        }
+
+        .card-header .flag {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+        }
+
+        .card-header h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .card-header p {
+            font-size: 0.85rem;
+            opacity: 0.85;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            background: #f9fafb;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            margin-bottom: -2px;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .card-body {
+            padding: 28px 32px;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        input[type=text],
+        input[type=email],
+        input[type=password],
+        input[type=tel] {
+            width: 100%;
+            padding: 11px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.35);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .alert {
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-success {
+            background: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+        }
+
+        .divider {
+            text-align: center;
+            color: #9ca3af;
+            font-size: 0.8rem;
+            margin: 8px 0 16px;
+            position: relative;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 38%;
+            height: 1px;
+            background: #e5e7eb;
+        }
+
+        .divider::before {
+            left: 0;
+        }
+
+        .divider::after {
+            right: 0;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 18px;
+            font-size: 0.85rem;
+            color: #6b7280;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .pwd-row {
+            position: relative;
+        }
+
+        .pwd-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #9ca3af;
+            font-size: 1rem;
+            padding: 0;
+        }
+
+        .row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="card-header">
+            <div class="flag">🏛️</div>
+            <h1>Citizen Portal</h1>
+            <p>Government of Sri Lanka – Secure Access</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" id="tab-login-btn" onclick="switchTab('login')">🔐 Login</button>
+            <button class="tab-btn" id="tab-register-btn" onclick="switchTab('register')">📝 Register</button>
+        </div>
+
+        <div class="card-body">
+
+            <!-- LOGIN PANEL -->
+            <div class="tab-panel active" id="panel-login">
+                <div class="alert alert-error" id="login-error"></div>
+                <div class="alert alert-success" id="login-success"></div>
+                <div class="form-group">
+                    <label for="login-email">Email Address</label>
+                    <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <div class="pwd-row">
+                        <input type="password" id="login-password" placeholder="Enter your password"
+                            autocomplete="current-password">
+                        <button class="pwd-toggle" type="button" onclick="togglePwd('login-password', this)">👁</button>
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="login-btn" onclick="doLogin()">
+                    <span id="login-label">Login to Portal</span>
+                    <div class="spinner" id="login-spinner"></div>
+                </button>
+                <div class="divider">or</div>
+                <p style="text-align:center;font-size:0.85rem;color:#6b7280;">Don't have an account? <a href="#"
+                        onclick="switchTab('register')" style="color:var(--primary);font-weight:600;">Register here</a>
+                </p>
+            </div>
+
+            <!-- REGISTER PANEL -->
+            <div class="tab-panel" id="panel-register">
+                <div class="alert alert-error" id="reg-error"></div>
+                <div class="alert alert-success" id="reg-success"></div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label for="reg-name">Full Name</label>
+                        <input type="text" id="reg-name" placeholder="John Silva">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-age">Age</label>
+                        <input type="text" id="reg-age" placeholder="28">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="reg-email">Email Address</label>
+                    <input type="email" id="reg-email" placeholder="you@example.com" autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="reg-phone">Mobile Number</label>
+                    <input type="tel" id="reg-phone" placeholder="+94 71 234 5678">
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label for="reg-job">Current Job</label>
+                        <input type="text" id="reg-job" placeholder="e.g. Teacher, Engineer">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-education">Education</label>
+                        <select id="reg-education" style="width: 100%; padding: 11px 14px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.9rem; outline: none; background: white;">
+                            <option value="">Select Education</option>
+                            <option value="school">School Level</option>
+                            <option value="ol">O/L</option>
+                            <option value="al">A/L</option>
+                            <option value="diploma">Diploma</option>
+                            <option value="degree">Bachelor's Degree</option>
+                            <option value="masters">Master's / PhD</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="reg-interests">What services are you primarily looking for?</label>
+                    <input type="text" id="reg-interests" placeholder="e.g. Healthcare, Education, Passports">
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">Password</label>
+                    <div class="pwd-row">
+                        <input type="password" id="reg-password" placeholder="Minimum 8 characters">
+                        <button class="pwd-toggle" type="button" onclick="togglePwd('reg-password', this)">👁</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="reg-confirm">Confirm Password</label>
+                    <input type="password" id="reg-confirm" placeholder="Re-enter your password">
+                </div>
+                <button class="btn btn-primary" id="reg-btn" onclick="doRegister()">
+                    <span id="reg-label">Create Account</span>
+                    <div class="spinner" id="reg-spinner"></div>
+                </button>
+                <div class="divider">or</div>
+                <p style="text-align:center;font-size:0.85rem;color:#6b7280;">Already have an account? <a href="#"
+                        onclick="switchTab('login')" style="color:var(--primary);font-weight:600;">Login here</a></p>
+            </div>
+        </div>
+
+        <a href="/" class="back-link">← Back to Citizen Portal</a>
+        <div style="height:20px;"></div>
+    </div>
+
+    <script>
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('tab-' + tab + '-btn').classList.add('active');
+            document.getElementById('panel-' + tab).classList.add('active');
+        }
+
+        function togglePwd(id, btn) {
+            const inp = document.getElementById(id);
+            inp.type = inp.type === 'password' ? 'text' : 'password';
+            btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+        }
+
+        function showAlert(id, msg) {
+            const el = document.getElementById(id);
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+        function hideAlerts(...ids) { ids.forEach(id => { document.getElementById(id).style.display = 'none'; }); }
+
+        function setLoading(btn, spinner, label, loading) {
+            document.getElementById(btn).disabled = loading;
+            document.getElementById(spinner).style.display = loading ? 'block' : 'none';
+            document.getElementById(label).style.display = loading ? 'none' : 'block';
+        }
+
+        async function doLogin() {
+            hideAlerts('login-error', 'login-success');
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            if (!email || !password) { showAlert('login-error', 'Please enter email and password.'); return; }
+            setLoading('login-btn', 'login-spinner', 'login-label', true);
+            try {
+                const res = await fetch('/api/citizen/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showAlert('login-success', '✓ Login successful! Redirecting...');
+                    localStorage.setItem('citizen_token', data.token);
+                    localStorage.setItem('citizen_name', data.name || email);
+                    localStorage.setItem('citizen_id', data.user_id || '');
+                    localStorage.setItem('profile_id', data.user_id || '');
+                    setTimeout(() => window.location.href = '/', 900);
+                } else {
+                    showAlert('login-error', data.error || 'Invalid email or password.');
+                }
+            } catch (e) {
+                showAlert('login-error', 'Connection error. Please try again.');
+            }
+            setLoading('login-btn', 'login-spinner', 'login-label', false);
+        }
+
+        async function doRegister() {
+            hideAlerts('reg-error', 'reg-success');
+            const name = document.getElementById('reg-name').value.trim();
+            const age = document.getElementById('reg-age').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const phone = document.getElementById('reg-phone').value.trim();
+            const interests = document.getElementById('reg-interests').value.trim();
+            const job = document.getElementById('reg-job').value.trim();
+            const education = document.getElementById('reg-education').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const confirm = document.getElementById('reg-confirm').value;
+
+            if (!name || !email || !password) { showAlert('reg-error', 'Name, email and password are required.'); return; }
+            if (password.length < 8) { showAlert('reg-error', 'Password must be at least 8 characters.'); return; }
+            if (password !== confirm) { showAlert('reg-error', 'Passwords do not match.'); return; }
+
+            setLoading('reg-btn', 'reg-spinner', 'reg-label', true);
+            try {
+                const res = await fetch('/api/citizen/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, age, email, phone, interests, job, education, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showAlert('reg-success', '✓ Account created! You can now login.');
+                    setTimeout(() => switchTab('login'), 1500);
+                } else {
+                    showAlert('reg-error', data.error || 'Registration failed. Try again.');
+                }
+            } catch (e) {
+                showAlert('reg-error', 'Connection error. Please try again.');
+            }
+            setLoading('reg-btn', 'reg-spinner', 'reg-label', false);
+        }
+
+        // Submit on Enter key
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                if (document.getElementById('panel-login').classList.contains('active')) doLogin();
+                else doRegister();
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Citizen Portal</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --purple: #a855f7;
+            --bg-dark: #0f172a;
+            --bg-darker: #020617;
+            --glass-bg: rgba(30, 41, 59, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        body { 
+            display: flex; justify-content: center; align-items: center; 
+            height: 100vh; margin: 0;
+            background: radial-gradient(circle at top right, var(--bg-dark), var(--bg-darker));
+            color: var(--text); font-family: 'Inter', sans-serif; overflow: hidden;
+        }
+        body::before, body::after {
+            content: ''; position: absolute; border-radius: 50%;
+            filter: blur(120px); z-index: -1; opacity: 0.35;
+        }
+        body::before { top: 10%; right: 10%; width: 40vw; height: 40vw; background: var(--primary); animation: move 25s infinite alternate ease-in-out; }
+        body::after { bottom: 10%; left: 10%; width: 50vw; height: 50vw; background: var(--purple); animation: move 20s infinite alternate-reverse ease-in-out; }
+        @keyframes move { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(-100px, 50px) scale(1.1); } }
+
+        .login-card { 
+            background: var(--glass-bg); backdrop-filter: blur(20px);
+            padding: 3rem; border-radius: 20px; border: 1px solid var(--glass-border);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3); width: 100%; max-width: 420px; position: relative;
+        }
+        .login-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--purple)); border-radius: 20px 20px 0 0;
+        }
+        h2 { text-align: center; margin-bottom: 2rem; color: var(--text); font-weight: 700; letter-spacing: -0.5px; }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        
+        input { 
+            width: 100%; padding: 1rem; background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255,255,255,0.1); color: white;
+            border-radius: 8px; box-sizing: border-box; font-size: 1rem; transition: all 0.3s;
+        }
+        input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); background: rgba(0,0,0,0.4); }
+        
+        button { 
+            width: 100%; padding: 1rem; background: linear-gradient(135deg, var(--primary), #2563eb); 
+            color: white; border: 1px solid var(--primary); border-radius: 8px; 
+            cursor: pointer; font-weight: 600; font-size: 1rem; transition: all 0.3s;
+            margin-top: 1rem; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5); }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h2>Admin Authentication</h2>
+        <form action="/admin/login" method="POST">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" name="username" required autofocus autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" required>
+            </div>
+            <button type="submit">Access Dashboard</button>
+        </form>
+    </div>
+</body>
+</html>

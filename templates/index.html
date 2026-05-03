@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="heading_main">Citizen Services Portal - Government of Sri Lanka</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Sidebar with Categories -->
+        <aside class="sidebar" id="sidebar">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle Menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+            <div class="logo">
+                <h1 data-i18n="heading_main">🏛️ Digital Citizen Services</h1>
+                <p data-i18n="subtitle_main">Government of Sri Lanka</p>
+            </div>
+            
+            <div class="mobile-menu-content" id="mobileMenu">
+                <div class="lang-switch">
+                    <h3 data-i18n="lang_title">Language</h3>
+                    <button class="lang-btn active" onclick="setLang('en')">EN</button>
+                    <button class="lang-btn" onclick="setLang('si')">සිං</button>
+                    <button class="lang-btn" onclick="setLang('ta')">தமிழ்</button>
+                </div>
+
+            <h2 data-i18n="cat_title">Categories</h2>
+            <div id="category-list" class="category-list"></div>
+
+            <div class="quick-links">
+                <h3 data-i18n="quick_title">Quick Access</h3>
+
+                <!-- Citizen login state bar -->
+                <div id="citizen-bar"
+                    style="background:rgba(255,255,255,0.15);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:13px;">
+                    <span id="citizen-greeting">👤 <a href="/citizen/login"
+                            style="color:white;font-weight:600;text-decoration:underline;" data-i18n="btn_citizen_login">Login / Register</a></span>
+                    <button id="citizen-logout-btn" onclick="citizenLogout()"
+                        style="display:none;background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4);border-radius:5px;padding:3px 10px;cursor:pointer;font-size:12px;margin-left:6px;"
+                        data-i18n="btn_logout">Logout</button>
+                </div>
+
+                <button onclick="showProfileModal()" class="quick-link"
+                    style="width:100%;text-align:left;background:none;border:none;cursor:pointer;color:var(--primary);"
+                    data-i18n="btn_profile">👤
+                    Create Profile</button>
+                <a href="/store" class="quick-link" data-i18n="btn_store">🛒 Public Store</a>
+                <a href="/citizen/login" class="quick-link" data-i18n="btn_citizen_login">🔐 Citizen Login</a>
+                <a href="/admin" class="quick-link" data-i18n="btn_admin">👨‍💼 Admin Login</a>
+            </div>
+
+            <div class="ads-section">
+                <h3 data-i18n="ads_title">Announcements</h3>
+                <div id="ads-area"></div>
+            </div>
+        </aside>
+
+        <!-- Mobile Navigation Controls -->
+        <div class="mobile-nav-header" style="display:none;">
+            <button id="mobile-back-btn" class="back-btn">← Back</button>
+            <span id="mobile-current-title">Categories</span>
+        </div>
+
+        <!-- Middle Section - Subservices -->
+        <section class="middle" id="middle-section">
+            <h2 id="sub-title" data-i18n="sub_title_default">Select Ministry Service</h2>
+            <p class="help-text" data-i18n="sub_help">Click on a category to see available services</p>
+            <ul id="sub-list" class="service-list"></ul>
+        </section>
+
+        <!-- Main Content - Questions and Answers -->
+        <main class="content">
+            <!-- Advanced Hero Section -->
+            <div class="hero-section"
+                style="position: relative; border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 60px 40px; margin-bottom: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.4); overflow: hidden;">
+                <!-- Background Image with Overlay -->
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=1200&auto=format&fit=crop') center/cover; z-index: 0; opacity: 0.4;"></div>
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(59, 130, 246, 0.4)); z-index: 1;"></div>
+                
+                <div style="position: relative; z-index: 2;">
+                    <h1 data-i18n="hero_title"
+                        style="font-family: 'Outfit', sans-serif; font-size: 42px; font-weight: 800; margin-bottom: 12px; color: #ffffff; letter-spacing: -1px; animation: slideDown 0.6s ease-out; text-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+                        Digital Citizen Services</h1>
+                    <p style="color: #e2e8f0; font-size: 18px; margin-bottom: 25px; max-width: 600px; margin-left: auto; margin-right: auto; animation: slideDown 0.8s ease-out; text-shadow: 0 2px 8px rgba(0,0,0,0.5);"
+                        data-i18n="hero_desc">Experience secure, intelligent, and instantaneous processing of public
+                        services directly from your dashboard.</p>
+                </div>
+            </div>
+
+            <div class="search-row">
+                <input id="search-input" data-i18n="search_ph" placeholder="Search services or ask a question..."
+                    oninput="autosuggest(this.value)" />
+                <button onclick="openChat()" class="btn-primary" data-i18n="btn_ask_ai">Ask AI Assistant</button>
+            </div>
+            
+            <!-- Quick Stats Ribbon to reduce empty look -->
+            <div class="stats-ribbon" style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 15px; margin-bottom: 30px; animation: slideDown 0.9s ease-out;">
+                <div style="flex: 1 1 200px; background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; display: flex; align-items: center; justify-content: center; text-align: left; gap: 15px;">
+                    <div style="font-size: 32px;">🏛️</div>
+                    <div>
+                        <div style="font-size: 20px; font-weight: 700; color: #60a5fa;">50+</div>
+                        <div style="font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;" data-i18n="stat_eservices">E-Services</div>
+                    </div>
+                </div>
+                <div style="flex: 1 1 200px; background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; display: flex; align-items: center; justify-content: center; text-align: left; gap: 15px;">
+                    <div style="font-size: 32px;">🤖</div>
+                    <div>
+                        <div style="font-size: 20px; font-weight: 700; color: #a78bfa;">24/7</div>
+                        <div style="font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;" data-i18n="stat_ai">AI Support</div>
+                    </div>
+                </div>
+                <div style="flex: 1 1 200px; background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; display: flex; align-items: center; justify-content: center; text-align: left; gap: 15px;">
+                    <div style="font-size: 32px;">🔒</div>
+                    <div>
+                        <div style="font-size: 20px; font-weight: 700; color: #34d399;">100%</div>
+                        <div style="font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;" data-i18n="stat_secure">Secure</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="suggestions" class="suggestions"></div>
+
+            <h2 id="q-title" data-i18n="faq_title">Frequently Asked Questions</h2>
+            <p id="q-help" class="help-text" data-i18n="faq_help">Select a service to see questions and answers</p>
+            <ul id="question-list" class="question-list"></ul>
+
+            <div id="answer-box" class="answer-box"></div>
+
+            <!-- Profile Modal -->
+            <div id="profile-modal" class="modal" style="display:none;">
+                <div class="modal-content">
+                    <span class="close" onclick="closeProfileModal()">&times;</span>
+                    <h3 id="profile-step-title">Create Your Profile</h3>
+                    <p class="modal-subtitle">Get personalized recommendations</p>
+
+                    <div id="profile-step-1" class="profile-step">
+                        <input id="p_name" placeholder="Full Name" required />
+                        <input id="p_age" placeholder="Age" type="number" min="18" max="100" />
+                        <button onclick="profileNext(1)" class="btn-primary">Next</button>
+                    </div>
+
+                    <div id="profile-step-2" class="profile-step" style="display:none;">
+                        <input id="p_email" placeholder="Email" type="email" />
+                        <input id="p_phone" placeholder="Mobile Number" type="tel" />
+                        <button onclick="profileBack(2)" class="btn-secondary">Back</button>
+                        <button onclick="profileNext(2)" class="btn-primary">Next</button>
+                    </div>
+
+                    <div id="profile-step-3" class="profile-step" style="display:none;">
+                        <input id="p_job" placeholder="Job Role / Workplace" />
+                        <select id="p_education">
+                            <option value="">Highest Qualification</option>
+                            <option value="ol">O/L</option>
+                            <option value="al">A/L</option>
+                            <option value="diploma">Diploma</option>
+                            <option value="degree">Degree</option>
+                            <option value="masters">Masters</option>
+                        </select>
+                        <button onclick="profileBack(3)" class="btn-secondary">Back</button>
+                        <button onclick="profileNext(3)" class="btn-primary">Next</button>
+                    </div>
+
+                    <div id="profile-step-4" class="profile-step" style="display:none;">
+                        <label>Family Status:</label>
+                        <select id="p_marital">
+                            <option value="">Select Status</option>
+                            <option value="single">Single</option>
+                            <option value="married">Married</option>
+                        </select>
+                        <input id="p_children" type="number" min="0" placeholder="Number of Children" />
+
+                        <label>Interests (Select all that apply):</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" value="education" name="interest"> Education</label>
+                            <label><input type="checkbox" value="career" name="interest"> Career</label>
+                            <label><input type="checkbox" value="health" name="interest"> Health</label>
+                            <label><input type="checkbox" value="housing" name="interest"> Housing</label>
+                            <label><input type="checkbox" value="business" name="interest"> Business</label>
+                        </div>
+
+                        <button onclick="profileBack(4)" class="btn-secondary">Back</button>
+                        <button onclick="profileSubmit()" class="btn-primary">Finish</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Chat Panel -->
+        <aside class="chat-panel" id="chat-panel" style="display:none;">
+            <div class="chat-header">
+                <h3 data-i18n="chat_title">🤖 AI Assistant</h3>
+                <button onclick="closeChat()" class="close-btn">&times;</button>
+            </div>
+            <div class="chat-body" id="chat-body">
+                <div class="chat-msg bot-msg chat-welcome" data-i18n="chat_welcome">
+                    Hello! I'm your AI assistant. Ask me anything about government services.
+                </div>
+                <div id="chat-typing" class="loading" style="display:none;">Thinking</div>
+            </div>
+            <div class="chat-input-container">
+                <input id="chat-text" data-i18n="chat_ph" placeholder="Type your question..."
+                    onkeypress="if(event.key==='Enter') sendChat()" />
+                <button onclick="sendChat()" class="btn-send" data-i18n="btn_send">Send</button>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Advanced Floating AI Button -->
+    <button id="floating-ai-btn" onclick="openChat()"
+        style="position:fixed; bottom:30px; right:30px; width:65px; height:65px; border-radius:50%; background:linear-gradient(135deg, #3b82f6, #8b5cf6); color:white; font-size:28px; display:flex; align-items:center; justify-content:center; border:none; box-shadow:0 10px 25px rgba(59,130,246,0.4); cursor:pointer; z-index:900; transition:all 0.3s; animation: float 3s ease-in-out infinite;">
+        <span style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">🤖</span>
+    </button>
+
+    <style>
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        #floating-ai-btn:hover {
+            transform: scale(1.1) !important;
+            box-shadow: 0 15px 35px rgba(139, 92, 246, 0.6);
+        }
+    </style>
+
+    <!-- Simple Footer at the very bottom of the document -->
+    <footer class="footer">
+        <p data-i18n="footer_cr">&copy; 2024 Government of Sri Lanka. All rights reserved.</p>
+        <p data-i18n="footer_pow" class="footer-pow">Powered by Citizen Services Portal</p>
+    </footer>
+
+    <script src="/static/script.js"></script>
+    <script>
+        // Init language from local storage if valid
+        const savedLang = localStorage.getItem('lang');
+        if (savedLang && ['en', 'si', 'ta'].includes(savedLang)) {
+            setLang(savedLang);
+        }
+    </script>
+    <!-- Mobile Bottom Navigation -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" id="nav-home">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Home</span>
+        </button>
+        <button class="nav-item" id="nav-services">
+            <span class="nav-icon">📋</span>
+            <span class="nav-label">Services</span>
+        </button>
+        <button class="nav-item" id="nav-chat">
+            <span class="nav-icon">🤖</span>
+            <span class="nav-label">AI Chat</span>
+        </button>
+        <button class="nav-item" id="nav-lang">
+            <span class="nav-icon">🌐</span>
+            <span class="nav-label">Lang</span>
+        </button>
+    </nav>
+
+    <!-- Mobile Language Modal -->
+    <div id="langModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" id="closeLang">&times;</span>
+            <h3 data-i18n="lang_title">Select Language</h3>
+            <div class="lang-options-grid">
+                <button class="lang-btn-large" onclick="setLang('en'); closeLangModal()">
+                    <span class="lang-flag">🇬🇧</span> English
+                </button>
+                <button class="lang-btn-large" onclick="setLang('si'); closeLangModal()">
+                    <span class="lang-flag">🇱🇰</span> සිංහල
+                </button>
+                <button class="lang-btn-large" onclick="setLang('ta'); closeLangModal()">
+                    <span class="lang-flag">🇱🇰</span> தமிழ்
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

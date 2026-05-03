@@ -1,0 +1,66 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Length 887 >>
+stream
+BT
+/F1 12 Tf
+50 750 Td
+14 TL
+(School Admission Application Form) Tj T*
+(=================================) Tj T*
+() Tj T*
+(Government of Sri Lanka) Tj T*
+(Citizen Services Portal) Tj T*
+() Tj T*
+(FORM FIELDS:) Tj T*
+() Tj T*
+(  [ ] Child's Full Name) Tj T*
+(  [ ] Date of Birth) Tj T*
+(  [ ] Gender) Tj T*
+(  [ ] Grade Applying For) Tj T*
+(  [ ] Previous School \(if any\)) Tj T*
+(  [ ] Father's Name) Tj T*
+(  [ ] Mother's Name) Tj T*
+(  [ ] Parent/Guardian NIC Number) Tj T*
+(  [ ] Home Address) Tj T*
+(  [ ] Contact Number) Tj T*
+(  [ ] Email Address) Tj T*
+(  [ ] Attach: Birth Certificate \(required\)) Tj T*
+(  [ ] Attach: Parent/Guardian NIC Copy \(required\)) Tj T*
+(  [ ] Attach: Proof of Address \(required\)) Tj T*
+(  [ ] Attach: Transfer Certificate \(if applicable\)) Tj T*
+() Tj T*
+(---) Tj T*
+(Signature: ________________________   Date: _______________) Tj T*
+() Tj T*
+ET
+endstream
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R
+   /MediaBox [0 0 595 842]
+   /Contents 5 0 R
+   /Resources << /Font << /F1 4 0 R >> >> >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000001123 00000 n 
+0000000115 00000 n 
+0000000185 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1258
+%%EOF

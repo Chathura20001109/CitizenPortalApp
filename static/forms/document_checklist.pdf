@@ -1,0 +1,58 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Length 730 >>
+stream
+BT
+/F1 12 Tf
+50 750 Td
+14 TL
+(Document Checklist - IT Services) Tj T*
+(================================) Tj T*
+() Tj T*
+(Government of Sri Lanka) Tj T*
+(Citizen Services Portal) Tj T*
+() Tj T*
+(FORM FIELDS:) Tj T*
+() Tj T*
+(  [ ] National Identity Card \(NIC\) - Original & Copy) Tj T*
+(  [ ] Passport-size Photograph \(2 copies\)) Tj T*
+(  [ ] Birth Certificate \(Original & Copy\)) Tj T*
+(  [ ] Educational Certificates \(attested copies\)) Tj T*
+(  [ ] Proof of Address \(utility bill or bank statement\)) Tj T*
+(  [ ] Application Form \(duly filled and signed\)) Tj T*
+(  [ ] Payment Receipt \(Rs. 500 processing fee\)) Tj T*
+() Tj T*
+(---) Tj T*
+(Signature: ________________________   Date: _______________) Tj T*
+() Tj T*
+ET
+endstream
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R
+   /MediaBox [0 0 595 842]
+   /Contents 5 0 R
+   /Resources << /Font << /F1 4 0 R >> >> >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000966 00000 n 
+0000000115 00000 n 
+0000000185 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1101
+%%EOF
