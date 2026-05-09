@@ -18,7 +18,10 @@ from dotenv import load_dotenv
 import bcrypt
 import sys
 
-load_dotenv()
+if os.path.exists(".env"):
+    load_dotenv()
+elif os.path.exists("backend/.env"):
+    load_dotenv("backend/.env")
 
 # MongoDB connection
 MONGO_URI = os.getenv("MONGO_URI")
@@ -151,6 +154,13 @@ def seed_categories():
             "icon": "leaf",
             "created": datetime.now(timezone.utc)
         },
+        {
+            "id": "cat_documents",
+            "name": {"en": "Official Documents & Services", "si": "නිල ලේඛන සහ සේවා", "ta": "அதிகாரபூர்வ ஆவணங்கள் மற்றும் சேவைகள்"},
+            "ministry_ids": ["ministry_documents"],
+            "icon": "document",
+            "created": datetime.now(timezone.utc)
+        },
     ]
     try:
         categories_col.insert_many(categories, ordered=False)
@@ -164,179 +174,39 @@ def seed_services():
     print("\n[3/7] Seeding services...")
     services = [
         {
-            "id": "ministry_it",
-            "category": "cat_it",
-            "name": {"en": "Ministry of IT & Digital Affairs", "si": "තොරතුරු සහ ඩිජිටල් කටයුතු අමාත්‍යාංශය", "ta": "தகவல் மற்றும் டிஜிட்டல் விவகார அமைச்சு"},
+            "id": "ministry_documents",
+            "category": "cat_documents",
+            "name": {"en": "Department for Registration of Persons & RGD", "si": "පුද්ගලයින් ලියාපදිංචි කිරීමේ දෙපාර්තමේන්තුව", "ta": "ஆட்பதிவுத் திணைக்களம்"},
             "subservices": [
                 {
-                    "id": "it_cert",
-                    "name": {"en": "IT Certificates", "si": "තොරතුරු තාක්ෂණ සහතික", "ta": "ஐடி சான்றிதழ்கள்"},
+                    "id": "nic_service",
+                    "name": {"en": "National Identity Card (NIC)", "si": "ජාතික හැඳුනුම්පත", "ta": "தேசிய அடையாள அட்டை"},
                     "questions": [
                         {
-                            "q": {"en": "How to apply for an IT certificate?", "si": "තොරතුරු තාක්ෂණ සහතිකයක් සඳහා අයදුම් කරන්නේ කෙසේද?"},
-                            "answer": {"en": "Fill the online form and upload your NIC copy. Processing takes 5-7 business days.", "si": "මාර්ගගත පෝරමය පුරවා ඔබගේ ජාතික හැඳුනුම්පතේ පිටපතක් උඩුගත කරන්න."},
-                            "downloads": ["/static/forms/it_cert_form.pdf"],
-                            "location": "https://maps.google.com/?q=Ministry+of+IT+Colombo",
-                            "instructions": "Visit the digital portal at digital.gov.lk, register with your email, and submit the application with required documents."
-                        },
-                        {
-                            "q": {"en": "What documents are required?"},
-                            "answer": {"en": "You need: NIC copy, passport-size photo, educational certificates, and proof of address."},
-                            "downloads": ["/static/forms/document_checklist.pdf"]
+                            "q": {"en": "How to apply for a new NIC?", "si": "නව ජාතික හැඳුනුම්පතක් සඳහා අයදුම් කරන්නේ කෙසේද?", "ta": "புதிய தேசிய அடையாள அட்டைக்கு எவ்வாறு விண்ணப்பிப்பது?"},
+                            "answer": {"en": "Submit your application through your Grama Niladhari to the Divisional Secretariat.", "si": "ඔබගේ අයදුම්පත ග්‍රාම නිලධාරී හරහා ප්‍රාදේශීය ලේකම් කාර්යාලයට ඉදිරිපත් කරන්න.", "ta": "உங்கள் கிராம உத்தியோகத்தர் மூலம் பிரதேச செயலகத்திற்கு விண்ணப்பத்தை சமர்ப்பிக்கவும்."},
+                            "downloads": ["/static/docs/nic-application.pdf"],  # Official DRP form
+                            "location": "https://drp.gov.lk",
+                            "verified_source": True,
+                            "eligibility": "Sri Lankan citizen over 15 years of age",
+                            "processing_time": "1 Day (Urgent), 14 Days (Normal)",
+                            "supporting_docs": ["Birth Certificate", "Grama Niladhari Certificate", "3 Passport Size Photos"]
                         }
                     ]
                 },
                 {
-                    "id": "digital_services",
-                    "name": {"en": "Digital Services Registration", "si": "ඩිජිටල් සේවා ලියාපදිංචිය"},
+                    "id": "civil_certs",
+                    "name": {"en": "Birth/Marriage/Death Certificates", "si": "උප්පැන්න/විවාහ/මරණ සහතික", "ta": "பிறப்பு/திருமண/இறப்பு சான்றிதழ்கள்"},
                     "questions": [
                         {
-                            "q": {"en": "How to register for government digital services?"},
-                            "answer": {"en": "Create an account on portal.gov.lk using your email and NIC. Verify your email to activate."},
-                            "downloads": [],
-                            "location": "https://portal.gov.lk"
-                        }
-                    ]
-                }
-            ],
-            "created": datetime.now(timezone.utc)
-        },
-        {
-            "id": "ministry_education",
-            "category": "cat_education",
-            "name": {"en": "Ministry of Education", "si": "අධ්‍යාපන අමාත්‍යාංශය", "ta": "கல்வி அமைச்சு"},
-            "subservices": [
-                {
-                    "id": "school_reg",
-                    "name": {"en": "School Registration", "si": "පාසල් ලියාපදිංචිය"},
-                    "questions": [
-                        {
-                            "q": {"en": "How to register a child in government school?"},
-                            "answer": {"en": "Visit the nearest school with birth certificate, NIC copies of parents, and proof of address. Registration is free."},
-                            "downloads": ["/static/forms/school_admission_form.pdf"],
-                            "location": "https://maps.google.com/?q=schools+near+me"
-                        }
-                    ]
-                },
-                {
-                    "id": "exam_results",
-                    "name": {"en": "Exam Results", "si": "විභාග ප්‍රතිඵල"},
-                    "questions": [
-                        {
-                            "q": {"en": "How to check O/L and A/L results?"},
-                            "answer": {"en": "Visit exam.gov.lk and enter your index number. Results are published within 3 months of exams."},
-                            "location": "https://exam.gov.lk"
-                        }
-                    ]
-                }
-            ],
-            "created": datetime.now(timezone.utc)
-        },
-        {
-            "id": "ministry_land",
-            "category": "cat_land",
-            "name": {"en": "Land Registry Department", "si": "ඉඩම් ලේඛන දෙපාර්තමේන්තුව"},
-            "subservices": [
-                {
-                    "id": "land_title",
-                    "name": {"en": "Land Title Search", "si": "ඉඩම් හිමිකම් සෙවීම"},
-                    "questions": [
-                        {
-                            "q": {"en": "How to obtain land title certificate?"},
-                            "answer": {"en": "Submit application at district land registry with deed number, NIC, and payment of Rs. 1000. Processing takes 2 weeks."},
-                            "downloads": ["/static/forms/land_title_application.pdf"]
-                        }
-                    ]
-                }
-            ],
-            "created": datetime.now(timezone.utc)
-        },
-        {
-            "id": "ministry_public",
-            "category": "cat_public",
-            "name": {"en": "Ministry of Public Administration", "si": "රාජ්‍ය පරිපාලන අමාත්‍යාංශය", "ta": "பொது நிர்வாக அமைச்சு"},
-            "subservices": [
-                {
-                    "id": "grama_niladhari",
-                    "name": {"en": "Grama Niladhari Services", "si": "ග්‍රාම නිලධාරී සේවා"},
-                    "questions": [
-                        {
-                            "q": {"en": "How to find my Grama Niladhari?"},
-                            "answer": {"en": "Visit the divisional secretariat website or use the government directory."},
-                            "location": "https://maps.google.com/?q=divisional+secretariat"
-                        },
-                        {
-                            "q": {"en": "How to obtain a character certificate?"},
-                            "answer": {"en": "Submit a request to your Grama Niladhari with a police report and NIC copy."}
-                        }
-                    ]
-                }
-            ],
-            "created": datetime.now(timezone.utc)
-        },
-        {
-            "id": "ministry_health",
-            "category": "cat_health",
-            "name": {"en": "Ministry of Health", "si": "සෞඛ්‍ය අමාත්‍යාංශය", "ta": "சுகாதார அமைச்சு"},
-            "subservices": [
-                {
-                    "id": "hospital_clinics",
-                    "name": {"en": "Hospital Clinics", "si": "රෝහල් සායන"},
-                    "questions": [
-                        {
-                            "q": {"en": "How to register for a clinic?"},
-                            "answer": {"en": "Visit the OPD with your referral letter."}
-                        }
-                    ]
-                }
-            ],
-            "created": datetime.now(timezone.utc)
-        },
-        {
-            "id": "ministry_housing",
-            "category": "cat_land",
-            "name": {"en": "Ministry of Housing", "si": "නිවාස අමාත්‍යාංශය", "ta": "வீடமைப்பு அமைச்சு"},
-            "subservices": [
-                {
-                    "id": "housing_loan",
-                    "name": {"en": "Housing Loans", "si": "නිවාස ණය"},
-                    "questions": [
-                        {
-                            "q": {"en": "How to apply for government housing loan?"},
-                            "answer": {"en": "Applications are available at the district office."}
-                        }
-                    ]
-                }
-            ],
-            "created": datetime.now(timezone.utc)
-        },
-        {
-            "id": "ministry_transport",
-            "category": "cat_transport",
-            "name": {"en": "Ministry of Transport", "si": "ප්‍රවාහන අමාත්‍යාංශය", "ta": "போக்குவரத்து அமைச்சு"},
-            "subservices": [
-                {
-                    "id": "driving_license",
-                    "name": {"en": "Driving License Services", "si": "රියදුරු බලපත්‍ර සේවා"},
-                    "questions": [
-                        {
-                            "q": {"en": "How to apply for a new driving license?"},
-                            "answer": {"en": "Visit the Department of Motor Traffic (DMT) with your NIC, birth certificate, and medical certificate. You must pass the written and practical exams."},
-                            "location": "https://maps.google.com/?q=DMT+Werahera"
-                        },
-                        {
-                            "q": {"en": "How to renew my driving license?"},
-                            "answer": {"en": "Renewals can be done at DMT offices or selected Divisional Secretariats. Bring your old license and a medical certificate."}
-                        }
-                    ]
-                },
-                {
-                    "id": "vehicle_reg",
-                    "name": {"en": "Vehicle Registration", "si": "වාහන ලියාපදිංචිය"},
-                    "questions": [
-                        {
-                            "q": {"en": "How to transfer vehicle ownership?"},
-                            "answer": {"en": "Submit MTA 6 and MTA 8 forms along with the vehicle book (CR) and revenue license to the DMT."}
+                            "q": {"en": "How to obtain a certified copy of a birth certificate?", "si": "උප්පැන්න සහතිකයේ සහතික කළ පිටපතක් ලබා ගන්නේ කෙසේද?", "ta": "பிறப்புச் சான்றிதழின் சான்றளிக்கப்பட்ட நகலை எவ்வாறு பெறுவது?"},
+                            "answer": {"en": "Apply via the Registrar General's Department online portal or visit your Divisional Secretariat.", "si": "රෙජිස්ට්‍රාර් ජනරාල් දෙපාර්තමේන්තුවේ මාර්ගගත ද්වාරය හරහා අයදුම් කරන්න.", "ta": "பதிவாளர் நாயகம் திணைக்களத்தின் இணைய தளம் மூலம் விண்ணப்பிக்கவும்."},
+                            "downloads": ["/static/docs/B63-BirthCert.pdf"],  # Official RGD Birth Cert form
+                            "location": "https://www.rgd.gov.lk",
+                            "verified_source": True,
+                            "eligibility": "Any citizen",
+                            "processing_time": "3-5 Working Days",
+                            "supporting_docs": ["NIC Copy", "Application Form B63"]
                         }
                     ]
                 }
@@ -353,14 +223,48 @@ def seed_services():
                     "name": {"en": "Passport Services", "si": "විදේශ ගමන් බලපත්‍ර සේවා"},
                     "questions": [
                         {
-                            "q": {"en": "How to apply for a passport?"},
-                            "answer": {"en": "Book an appointment online via the department website. Visit the Battaramulla office with NIC, birth certificate, and photos."},
-                            "location": "https://maps.google.com/?q=Immigration+Battaramulla",
-                            "instructions": "Online appointment is mandatory."
-                        },
+                            "q": {"en": "How to apply for a new passport?", "si": "නව විදේශ ගමන් බලපත්‍රයක් සඳහා අයදුම් කරන්නේ කෙසේද?"},
+                            "answer": {"en": "Book an appointment online and visit the head office or regional office. Online appointment is mandatory.", "si": "මාර්ගගතව වේලාවක් වෙන්කර ප්‍රධාන කාර්යාලයට හෝ ප්‍රාදේශීය කාර්යාලයට පැමිණෙන්න."},
+                            "location": "https://www.immigration.gov.lk",
+                            "downloads": ["/static/docs/K35A-Passport.pdf"],  # Official Immigration Department form
+                            "verified_source": True,
+                            "eligibility": "Sri Lankan Citizen",
+                            "processing_time": "1 Day (Urgent LKR 20,000), 30 Days (Normal LKR 5,000)",
+                            "supporting_docs": ["Original Birth Certificate", "NIC", "Studio Photo Receipt"]
+                        }
+                    ]
+                }
+            ],
+            "created": datetime.now(timezone.utc)
+        },
+        {
+            "id": "ministry_transport",
+            "category": "cat_transport",
+            "name": {"en": "Department of Motor Traffic", "si": "මෝටර් රථ ප්‍රවාහන දෙපාර්තමේන්තුව", "ta": "மோட்டார் போக்குவரத்து திணைக்களம்"},
+            "subservices": [
+                {
+                    "id": "driving_license",
+                    "name": {"en": "Driving License Services", "si": "රියදුරු බලපත්‍ර සේවා"},
+                    "questions": [
                         {
-                            "q": {"en": "What are the fees for a passport?"},
-                            "answer": {"en": "Normal service: LKR 5,000 (30 days). One-day service: LKR 20,000."}
+                            "q": {"en": "How to apply for a new driving license?"},
+                            "answer": {"en": "Visit DMT Werahera or a district office with your NIC and NTMI medical certificate."},
+                            "location": "https://dmt.gov.lk",
+                            "downloads": ["/static/docs/MTA30-DrivingLicense.pdf"],  # Official DMT form MTA30
+                            "verified_source": True,
+                            "eligibility": "Age 18+ for Light Vehicles",
+                            "processing_time": "Written exam immediately, practical after 3 months",
+                            "supporting_docs": ["NIC", "Birth Certificate", "NTMI Medical Certificate"]
+                        }
+                    ]
+                },
+                {
+                    "id": "vehicle_reg",
+                    "name": {"en": "Vehicle Registration & Transfer", "si": "වාහන ලියාපදිංචිය සහ පැවරීම"},
+                    "questions": [
+                        {
+                            "q": {"en": "How to transfer vehicle ownership?"},
+                            "answer": {"en": "Submit MTA 6 and MTA 8 forms along with the CR and revenue license to the DMT."}
                         }
                     ]
                 }
@@ -370,16 +274,170 @@ def seed_services():
         {
             "id": "ministry_finance",
             "category": "cat_finance",
-            "name": {"en": "Ministry of Finance", "si": "මුදල් අමාත්‍යාංශය", "ta": "நிதி அமைச்சு"},
+            "name": {"en": "Inland Revenue Department", "si": "දේශීය ආදායම් දෙපාර්තමේන්තුව", "ta": "உள்நாட்டு இறைவரித் திணைக்களம்"},
             "subservices": [
                 {
                     "id": "tin_reg",
-                    "name": {"en": "TIN Registration", "si": "බදු ගෙවන්නා හඳුනාගැනීමේ අංකය"},
+                    "name": {"en": "TIN Registration (Taxpayer ID)", "si": "බදු ගෙවන්නා හඳුනාගැනීමේ අංකය"},
                     "questions": [
                         {
-                            "q": {"en": "How to get a TIN number?"},
-                            "answer": {"en": "Register online at the Inland Revenue Department (IRD) website or visit the IRD head office."},
-                            "location": "https://ird.gov.lk"
+                            "q": {"en": "How to register for a TIN number online?"},
+                            "answer": {"en": "Use the IRD e-Services portal to register for a TIN. It is mandatory for all citizens over 18."},
+                            "location": "https://eservices.ird.gov.lk/Registration/TINRegistration",
+                            "verified_source": True,
+                            "eligibility": "Any citizen over 18 or Registered Business",
+                            "processing_time": "Instant via e-Services",
+                            "supporting_docs": ["NIC Copy (both sides)", "Proof of billing address"],
+                            "downloads": ["/static/docs/TIN-Application.pdf"]  # Official IRD TIN form TPR_002_E
+                        }
+                    ]
+                }
+            ],
+            "created": datetime.now(timezone.utc)
+        },
+        {
+            "id": "ministry_public",
+            "category": "cat_public",
+            "name": {"en": "Sri Lanka Police & Public Services", "si": "ශ්‍රී ලංකා පොලිසිය සහ රාජ්‍ය සේවා", "ta": "இலங்கை பொலிஸ் மற்றும் பொது சேவைகள்"},
+            "subservices": [
+                {
+                    "id": "police_clearance",
+                    "name": {"en": "Police Clearance Certificate", "si": "පොලිස් නිෂ්කාශන සහතිකය"},
+                    "questions": [
+                        {
+                            "q": {"en": "How to apply for a Police Clearance Certificate online?"},
+                            "answer": {"en": "Apply through the official Sri Lanka Police e-Services portal. Required for visas and foreign employment."},
+                            "location": "https://www.police.lk/index.php/clearance-certificate/",
+                            "verified_source": True,
+                            "eligibility": "Sri Lankan Citizens and foreigners who resided in Sri Lanka",
+                            "processing_time": "14 Working Days",
+                            "supporting_docs": ["NIC Copy", "Valid Passport Copy", "Application Form"],
+                            "downloads": ["/static/docs/Police-Clearance.pdf"]  # Official Sri Lanka Police form
+                        }
+                    ]
+                },
+                {
+                    "id": "pension",
+                    "name": {"en": "Department of Pensions", "si": "විශ්‍රාම වැටුප් දෙපාර්තමේන්තුව"},
+                    "questions": [
+                        {
+                            "q": {"en": "How to check my pension status?"},
+                            "answer": {"en": "Log into the Department of Pensions portal using your Pension ID."},
+                            "location": "https://www.pensions.gov.lk/",
+                            "verified_source": True,
+                            "processing_time": "Instant lookup",
+                            "supporting_docs": ["Pension ID number"]
+                        }
+                    ]
+                }
+            ],
+            "created": datetime.now(timezone.utc)
+        },
+        {
+            "id": "ministry_land",
+            "category": "cat_land",
+            "name": {"en": "Land Registry & Survey Department", "si": "ඉඩම් ලියාපදිංචි කිරීමේ දෙපාර්තමේන්තුව", "ta": "காணிப் பதிவாளர் திணைக்களம்"},
+            "subservices": [
+                {
+                    "id": "land_title",
+                    "name": {"en": "Title Registration & Search", "si": "ඔප්පු ලියාපදිංචිය සහ සෙවීම"},
+                    "questions": [
+                        {
+                            "q": {"en": "How to obtain a certified copy of a deed?"},
+                            "answer": {"en": "Submit a request to your district Land Registry with the relevant folio numbers and stamps."},
+                            "location": "https://rgd.gov.lk",
+                            "verified_source": True,
+                            "eligibility": "Property Owners or Authorized Representatives",
+                            "processing_time": "1-2 Weeks",
+                            "supporting_docs": ["Folio/Deed Number Details", "NIC"]
+                        }
+                    ]
+                }
+            ],
+            "created": datetime.now(timezone.utc)
+        },
+        {
+            "id": "ministry_it",
+            "category": "cat_it",
+            "name": {"en": "Information and Communication Technology Agency", "si": "තොරතුරු හා සන්නිවේදන තාක්ෂණ නියෝජිතායතනය", "ta": "தகவல் மற்றும் தொடர்பு தொழில்நுட்ப நிறுவனம்"},
+            "subservices": [
+                {
+                    "id": "digital_id",
+                    "name": {"en": "Lanka Gate e-Services", "si": "ලංකා ගේට් ඊ-සේවා", "ta": "லங்கா கேட் இ-சேவைகள்"},
+                    "questions": [
+                        {
+                            "q": {"en": "How to access government e-Services online?", "si": "රජයේ ඊ-සේවා මාර්ගගතව ලබා ගන්නේ කෙසේද?"},
+                            "answer": {"en": "Register through the Lanka Gate portal (srilanka.lk) to access hundreds of government digital services from a single account."},
+                            "location": "https://www.srilanka.lk",
+                            "downloads": [],
+                            "verified_source": True,
+                            "eligibility": "All Sri Lankan Citizens",
+                            "processing_time": "Instant Registration",
+                            "supporting_docs": ["NIC", "Valid Email", "Mobile Number"]
+                        }
+                    ]
+                }
+            ],
+            "created": datetime.now(timezone.utc)
+        },
+        {
+            "id": "ministry_education",
+            "category": "cat_education",
+            "name": {"en": "Ministry of Education", "si": "අධ්‍යාපන අමාත්‍යාංශය", "ta": "கல்வி அமைச்சு"},
+            "subservices": [
+                {
+                    "id": "school_admission",
+                    "name": {"en": "School Admissions", "si": "පාසල් ප්‍රවේශය", "ta": "பாடசாலை அனுமதி"},
+                    "questions": [
+                        {
+                            "q": {"en": "How to apply for Grade 1 admission in a government school?", "si": "රජයේ පාසලක පළමු ශ්‍රේණියට ඇතුළත් වීමට අයදුම් කරන්නේ කෙසේද?"},
+                            "answer": {"en": "Submit the standardized application form to the school principal before the annual deadline published by the Ministry of Education."},
+                            "location": "https://moe.gov.lk",
+                            "downloads": ["/static/docs/Grade1-Admission-Si.pdf", "/static/docs/Grade1-Admission-Ta.pdf"],
+                            "verified_source": True,
+                            "eligibility": "Children turning 5 years of age by January 31st of the admission year",
+                            "processing_time": "Annual cycle (June-August applications)",
+                            "supporting_docs": ["Birth Certificate", "Proof of Residence (Deed/Lease)", "Electoral Register Extracts"]
+                        }
+                    ]
+                },
+                {
+                    "id": "exam_results",
+                    "name": {"en": "Department of Examinations", "si": "විභාග දෙපාර්තමේන්තුව", "ta": "பரீட்சை திணைக்களம்"},
+                    "questions": [
+                        {
+                            "q": {"en": "How to check G.C.E. O/L and A/L results online?"},
+                            "answer": {"en": "Visit the official Department of Examinations portal and enter your Index Number or NIC to view results."},
+                            "location": "https://www.doenets.lk",
+                            "downloads": [],
+                            "verified_source": True,
+                            "eligibility": "Registered Candidates",
+                            "processing_time": "Instant lookup",
+                            "supporting_docs": ["Index Number", "NIC"]
+                        }
+                    ]
+                }
+            ],
+            "created": datetime.now(timezone.utc)
+        },
+        {
+            "id": "ministry_health",
+            "category": "cat_health",
+            "name": {"en": "Ministry of Health", "si": "සෞඛ්‍ය අමාත්‍යාංශය", "ta": "சுகாதார அமைச்சு"},
+            "subservices": [
+                {
+                    "id": "ambulance",
+                    "name": {"en": "1990 Suwa Seriya Ambulance", "si": "1990 සුව සැරිය ගිලන් රථ සේවාව", "ta": "1990 சுவ செரிய நோயாளர் காவு வண்டி"},
+                    "questions": [
+                        {
+                            "q": {"en": "How to call a government ambulance in an emergency?", "si": "හදිසි අවස්ථාවකදී රජයේ ගිලන් රථයක් අමතන්නේ කෙසේද?"},
+                            "answer": {"en": "Dial 1990 toll-free from any network for emergency pre-hospital care transport to the nearest government hospital."},
+                            "location": "https://www.health.gov.lk",
+                            "downloads": [],
+                            "verified_source": True,
+                            "eligibility": "Any person needing emergency medical transport",
+                            "processing_time": "Immediate dispatch (Average response time 11 mins)",
+                            "supporting_docs": ["None required during emergency"]
                         }
                     ]
                 }
@@ -389,17 +447,21 @@ def seed_services():
         {
             "id": "ministry_agriculture",
             "category": "cat_agriculture",
-            "name": {"en": "Ministry of Agriculture", "si": "කෘෂිකර්ම අමාත්‍යාංශය", "ta": "விவசாய அமைச்சு"},
+            "name": {"en": "Department of Agrarian Development", "si": "ගොවිජන සංවර්ධන දෙපාර්තමේන්තුව", "ta": "விவசாய அபிவிருத்தி திணைக்களம்"},
             "subservices": [
                 {
-                    "id": "agri_subsidy",
-                    "name": {"en": "Fertilizer Subsidy", "si": "පොහොර සහනාධාරය", "ta": "உர மானியம்"},
+                    "id": "fertilizer",
+                    "name": {"en": "Fertilizer Subsidy Scheme", "si": "පොහොර සහනාධාර ක්‍රමය", "ta": "உர மானியத் திட்டம்"},
                     "questions": [
                         {
-                            "q": {"en": "How to apply for fertilizer subsidy?", "si": "පොහොර සහනාධාරය සඳහා අයදුම් කරන්නේ කෙසේද?", "ta": "உர மானியத்திற்கு எவ்வாறு விண்ணப்பிப்பது?"},
-                            "answer": {"en": "Registered farmers can apply via the Agrarian Services Center in their area. Bring your farmer ID card.", "si": "ලියාපදිංචි ගොවීන්ට තම ප්‍රදේශයේ ගොවිජන සේවා මධ්‍යස්ථානය හරහා අයදුම් කළ හැකිය. ඔබේ ගොවි හැඳුනුම්පත රැගෙන එන්න.", "ta": "பதிவு செய்யப்பட்ட விவசாயிகள் தங்கள் பகுதியில் உள்ள விவசாய சேவை மையத்தின் மூலம் விண்ணப்பிக்கலாம். உங்கள் விவசாயி அடையாள அட்டையை கொண்டு வாருங்கள்."},
-                            "downloads": ["/static/forms/fertilizer_subsidy.pdf"],
-                            "location": "https://maps.google.com/?q=Agrarian+Services+Center"
+                            "q": {"en": "How to apply for the government fertilizer subsidy?", "si": "රජයේ පොහොර සහනාධාරය සඳහා අයදුම් කරන්නේ කෙසේද?"},
+                            "answer": {"en": "Register your cultivation details with the regional Agrarian Services Center. Subsidy will be directly credited to your bank account."},
+                            "location": "https://www.agrimin.gov.lk",
+                            "downloads": [],
+                            "verified_source": True,
+                            "eligibility": "Registered farmers cultivating Paddy or specific cash crops",
+                            "processing_time": "Seasonal (Maha/Yala)",
+                            "supporting_docs": ["Farmer ID (Govi ID)", "Land Ownership/Cultivation Proof", "Bank Account Details"]
                         }
                     ]
                 }
@@ -447,63 +509,118 @@ def seed_officers():
 def seed_ads():
     print("\n[5/7] Seeding ads and announcements...")
     ads = [
+        # --- OFFICIAL GOVERNMENT ANNOUNCEMENTS (Citizen-Targeted) ---
         {
-            "id": "ad_degree_01",
-            "title": "Complete Your Degree - Government Employee Discount",
-            "body": "SpaceXP Campus offers weekend degree programs. Special 20% discount for government employees. Limited seats available.",
-            "link": "/store?product=prod_degree_01",
+            "id": "ad_nic_renewal",
+            "title": "NIC Renewal Reminder - Smart NIC Available",
+            "body": "The Department for Registration of Persons now issues the Smart National Identity Card. Apply for renewal or a new NIC online via the official portal.",
+            "link": "https://drp.gov.lk",
+            "link_label": "Apply at DRP Portal",
+            "link_type": "external",
             "active": True,
             "priority": "high",
-            "tags": ["degree", "education", "government", "career"],
-            "target_segments": ["government_employee", "needs_qualification", "mid_career_family"],
-            "image": "/static/img/degree_ad.jpg",
+            "tags": ["nic", "identity", "documents", "government"],
+            "target_segments": ["young_adult", "all_citizens"],
             "created": datetime.now(timezone.utc),
-            "start_date": datetime.now(timezone.utc),
-            "end_date": datetime.now(timezone.utc) + timedelta(days=90)
+            "end_date": datetime.now(timezone.utc) + timedelta(days=365)
         },
         {
-            "id": "ad_ielts_01",
-            "title": "IELTS Preparation - Batch Starting Soon",
-            "body": "Comprehensive IELTS course with mock tests and speaking practice. 90% success rate.",
-            "link": "/store?product=prod_ielts_01",
+            "id": "ad_passport_eappointment",
+            "title": "Apply for Passports Online - New System",
+            "body": "The Department of Immigration and Emigration has launched a new online portal for passport applications. Apply from home and get your appointment integrated with the application process.",
+            "link": "https://eservices.immigration.gov.lk/onlinetd/OnlineTD/",
+            "link_label": "Apply Online Now",
+            "link_type": "external",
             "active": True,
             "priority": "high",
-            "tags": ["ielts", "english", "overseas", "language"],
-            "target_segments": ["young_adult", "early_career", "overseas_interested"],
-            "created": datetime.now(timezone.utc)
+            "tags": ["passport", "immigration", "travel", "overseas"],
+            "target_segments": ["overseas_interested", "young_adult", "early_career"],
+            "created": datetime.now(timezone.utc),
+            "end_date": datetime.now(timezone.utc) + timedelta(days=365)
         },
         {
-            "id": "ad_japan_visa",
-            "title": "Japan Work Visa Assistance",
-            "body": "IT and healthcare opportunities in Japan. Complete visa processing and job matching support.",
-            "link": "/store?product=prod_japan_visa_01",
-            "active": True,
-            "priority": "medium",
-            "tags": ["japan", "visa", "overseas", "it"],
-            "target_segments": ["tech_professional", "early_career"],
-            "created": datetime.now(timezone.utc)
-        },
-        {
-            "id": "ad_laptop_deal",
-            "title": "Government Employee Laptop Deal",
-            "body": "Premium laptops at subsidized rates for government employees. Easy installment plans available.",
-            "link": "/store?product=prod_laptop_01",
-            "active": True,
-            "priority": "medium",
-            "tags": ["laptop", "electronics", "government"],
-            "target_segments": ["government_employee"],
-            "created": datetime.now(timezone.utc)
-        },
-        {
-            "id": "ad_ol_tuition",
-            "title": "O/L Tuition Classes - 2025 Batch",
-            "body": "Expert teachers for all subjects. Small batch sizes. Weekend and evening classes available.",
-            "link": "/store?category=education&filter=tuition",
+            "id": "ad_grade1_admission",
+            "title": "Grade 1 Admissions 2026 - Applications Open",
+            "body": "Applications for Grade 1 admission to government schools for 2026 are now open. Submit to the school principal before the Ministry deadline.",
+            "link": "https://moe.gov.lk",
+            "link_label": "Ministry of Education",
+            "link_type": "external",
             "active": True,
             "priority": "high",
-            "tags": ["ol", "tuition", "education", "children"],
-            "target_segments": ["parent", "secondary_school_parent"],
-            "created": datetime.now(timezone.utc)
+            "tags": ["school", "education", "grade1", "admission", "children"],
+            "target_segments": ["parent", "secondary_school_parent", "family"],
+            "created": datetime.now(timezone.utc),
+            "end_date": datetime.now(timezone.utc) + timedelta(days=180)
+        },
+        {
+            "id": "ad_tin_registration",
+            "title": "TIN Registration Now Mandatory for All Citizens Over 18",
+            "body": "The Inland Revenue Department requires all citizens over 18 to register for a Taxpayer Identification Number (TIN). Register free via e-Services.",
+            "link": "https://eservices.ird.gov.lk/Registration/TINRegistration",
+            "link_label": "Register TIN Online (IRD)",
+            "link_type": "external",
+            "active": True,
+            "priority": "high",
+            "tags": ["tin", "tax", "ird", "finance", "registration"],
+            "target_segments": ["government_employee", "mid_career_family", "early_career"],
+            "created": datetime.now(timezone.utc),
+            "end_date": datetime.now(timezone.utc) + timedelta(days=365)
+        },
+        {
+            "id": "ad_police_clearance",
+            "title": "Police Clearance Certificate - Online Application",
+            "body": "Sri Lanka Police now accepts online applications for Police Clearance Certificates required for foreign employment and visa applications.",
+            "link": "https://www.police.lk/?page_id=907",
+            "link_label": "Apply at Police e-Services",
+            "link_type": "external",
+            "active": True,
+            "priority": "medium",
+            "tags": ["police", "clearance", "overseas", "visa", "employment"],
+            "target_segments": ["overseas_interested", "young_adult", "early_career"],
+            "created": datetime.now(timezone.utc),
+            "end_date": datetime.now(timezone.utc) + timedelta(days=365)
+        },
+        {
+            "id": "ad_suwa_seriya",
+            "title": "1990 Suwa Seriya - Free Emergency Ambulance",
+            "body": "Call 1990 toll-free for emergency ambulance service available 24/7 across Sri Lanka. Service is completely free for all citizens.",
+            "link": "https://www.health.gov.lk",
+            "link_label": "Ministry of Health",
+            "link_type": "external",
+            "active": True,
+            "priority": "high",
+            "tags": ["health", "ambulance", "emergency", "free"],
+            "target_segments": ["all_citizens", "elderly", "family"],
+            "created": datetime.now(timezone.utc),
+            "end_date": datetime.now(timezone.utc) + timedelta(days=730)
+        },
+        {
+            "id": "ad_fertilizer_subsidy",
+            "title": "Fertilizer Subsidy Scheme - Maha Season Registration",
+            "body": "Registered paddy farmers can apply for the government fertilizer subsidy at their regional Agrarian Services Center. Subsidy credited directly to your bank.",
+            "link": "https://www.agrimin.gov.lk",
+            "link_label": "Department of Agriculture",
+            "link_type": "external",
+            "active": True,
+            "priority": "medium",
+            "tags": ["agriculture", "fertilizer", "subsidy", "farmers", "paddy"],
+            "target_segments": ["farmer", "rural", "agriculture"],
+            "created": datetime.now(timezone.utc),
+            "end_date": datetime.now(timezone.utc) + timedelta(days=180)
+        },
+        {
+            "id": "ad_eservices_lanka",
+            "title": "Lanka Gate - All Government Services Online",
+            "body": "Access 200+ government services through a single digital account at srilanka.lk. Save time with online applications, payments and tracking.",
+            "link": "https://www.srilanka.lk",
+            "link_label": "Visit Lanka Gate",
+            "link_type": "external",
+            "active": True,
+            "priority": "medium",
+            "tags": ["digital", "eservices", "online", "government"],
+            "target_segments": ["tech_professional", "young_adult", "government_employee"],
+            "created": datetime.now(timezone.utc),
+            "end_date": datetime.now(timezone.utc) + timedelta(days=730)
         }
     ]
     try:

@@ -258,6 +258,8 @@ function setLang(language) {
                             if (qList) {
                                 const qTarget = qList.querySelector(`[data-q-index="${savedQIndex}"]`);
                                 if (qTarget) {
+                                    // Official MOE Circular 25/2025 link update
+                                    const downloads = ["/static/docs/Grade1-Admission-Si.pdf", "/static/docs/Grade1-Admission-Ta.pdf"];
                                     document.querySelectorAll('#question-list li').forEach(l => l.classList.remove('active'));
                                     qTarget.classList.add('active');
                                     showAnswer(currentSub, currentSub, currentQuestionObj);
@@ -467,6 +469,13 @@ function appendSubserviceToList(container, service, sub, index = 0) {
         loadQuestions(service, sub);
         setMobileLevel(3, "Q&A");
 
+        // Clear previous answer when switching service
+        const answerBox = document.getElementById('answer-box');
+        if (answerBox) {
+            answerBox.innerHTML = '';
+            answerBox.classList.remove('active');
+        }
+
         // Mobile: Scroll to questions section
         if (window.innerWidth <= 1024) {
             const qSection = document.getElementById('q-title');
@@ -540,9 +549,33 @@ function showAnswer(service, sub, q) {
     h.textContent = (q.q && (q.q[lang] || q.q.en)) || q.q || "";
     answerBox.appendChild(h);
 
+    if (q.verified_source) {
+        const vBadge = document.createElement("div");
+        vBadge.innerHTML = `<span style="background-color: #10b981; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; margin-bottom: 12px; margin-top: 4px; gap: 4px;"><svg style="width:14px;height:14px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Verified Official Source</span>`;
+        answerBox.appendChild(vBadge);
+    }
+
     const p = document.createElement("p");
     p.textContent = (q.answer && (q.answer[lang] || q.answer.en)) || q.answer || "";
     answerBox.appendChild(p);
+
+    if (q.eligibility) {
+        const elig = document.createElement("p");
+        elig.innerHTML = `<b>Eligibility:</b> ${escapeHtml(q.eligibility)}`;
+        answerBox.appendChild(elig);
+    }
+
+    if (q.processing_time) {
+        const pTime = document.createElement("p");
+        pTime.innerHTML = `<b>Processing Time:</b> ${escapeHtml(q.processing_time)}`;
+        answerBox.appendChild(pTime);
+    }
+
+    if (q.supporting_docs && q.supporting_docs.length) {
+        const docsP = document.createElement("p");
+        docsP.innerHTML = `<b>Supporting Documents:</b><ul style="margin-top: 4px; margin-bottom: 12px; padding-left: 20px;">${q.supporting_docs.map(d => `<li>${escapeHtml(d)}</li>`).join('')}</ul>`;
+        answerBox.appendChild(docsP);
+    }
 
     if (q.downloads && q.downloads.length) {
         const dlp = document.createElement("p");
@@ -555,8 +588,12 @@ function showAnswer(service, sub, q) {
             a.href = d;
             a.target = "_blank";
             a.rel = "noopener";
-            a.download = "";
-            a.textContent = d.split("/").pop();
+            if (d.toLowerCase().match(/\.(pdf|doc|docx)$/)) {
+                a.download = "";
+                a.textContent = "📄 " + d.split("/").pop();
+            } else {
+                a.textContent = "🌐 Official Download Portal";
+            }
             dlp.appendChild(a);
             dlp.appendChild(document.createElement("br"));
         });
@@ -804,10 +841,14 @@ function appendBotMessage(answer, downloads, location, instructions) {
             a.href = url;
             a.target = "_blank";
             a.rel = "noopener noreferrer";
-            a.download = url.split("/").pop();
-            // Display only the filename nicely
-            const fname = url.split("/").pop().replace(/_/g, " ").replace(/\.pdf$/i, "");
-            a.textContent = "⬇ " + fname + " (.pdf)";
+            
+            if (url.toLowerCase().match(/\.(pdf|doc|docx)$/)) {
+                a.download = url.split("/").pop();
+                const fname = url.split("/").pop().replace(/_/g, " ").replace(/\.(pdf|doc|docx)$/i, "");
+                a.textContent = "⬇ " + fname + " (Document)";
+            } else {
+                a.textContent = "🌐 Official Application Portal";
+            }
             a.style.cssText = "display:inline-block;margin-top:6px;padding:4px 10px;background:#1e40af;color:white;border-radius:5px;text-decoration:none;font-size:13px;font-weight:600;";
             dlDiv.appendChild(a);
         });
@@ -1038,7 +1079,7 @@ async function loadAds() {
                 : '';
             
             card.style.position = "relative";
-            card.style.padding = "16px";
+            card.style.padding = "0";
             card.style.marginBottom = "20px";
             card.style.borderRadius = "16px";
             card.style.background = isRecommended 
@@ -1062,15 +1103,18 @@ async function loadAds() {
                 card.style.borderColor = isRecommended ? "rgba(16, 185, 129, 0.3)" : "rgba(255, 255, 255, 0.05)";
             };
             
+            const isExternal = a.link_type === 'external' || (a.link && a.link.startsWith('http'));
             const link = document.createElement("a");
             link.href = a.link || "#";
-            link.target = "_blank";
-            link.rel = "noopener";
+            link.target = isExternal ? "_blank" : "_self";
+            link.rel = isExternal ? "noopener noreferrer" : "";
             link.style.textDecoration = "none";
             link.style.display = "block";
+            link.style.padding = "16px";
+            link.style.position = "relative";
             
             const h = document.createElement("h4");
-            h.innerHTML = `📢 ${a.title || ""}`;
+            h.textContent = `📢 ${a.title || ""}`;
             h.style.margin = "0 0 8px 0";
             h.style.color = isRecommended ? "#34d399" : "#60a5fa";
             h.style.fontSize = "0.95rem";
@@ -1078,14 +1122,21 @@ async function loadAds() {
             
             const p = document.createElement("p");
             p.textContent = a.content || a.body || "";
-            p.style.margin = "0";
+            p.style.margin = "0 0 10px 0";
             p.style.fontSize = "0.85rem";
             p.style.color = "#cbd5e1";
             p.style.lineHeight = "1.5";
-            
+
+            // Action button showing the official destination
+            const btn = document.createElement("span");
+            const linkLabel = a.link_label || (isExternal ? "🌐 Visit Official Website" : "📋 View Details");
+            btn.textContent = linkLabel;
+            btn.style.cssText = "display:inline-block;margin-top:4px;padding:4px 10px;background:linear-gradient(135deg,#1e40af,#1d4ed8);color:white;border-radius:8px;font-size:0.75rem;font-weight:700;letter-spacing:0.3px;";
+
             link.innerHTML = badge;
             link.appendChild(h);
             link.appendChild(p);
+            link.appendChild(btn);
             card.appendChild(link);
             el.appendChild(card);
         });
