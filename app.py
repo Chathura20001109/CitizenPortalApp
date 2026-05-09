@@ -17,6 +17,9 @@ from datetime import datetime, timedelta, timezone
 import re
 from functools import wraps
 import pathlib
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 from flask import Flask, jsonify, render_template, request, session, redirect, send_from_directory
 from flask_cors import CORS
@@ -184,6 +187,7 @@ ads_col = db["ads"]
 payments_col = db["payments"]
 services_col = db["services"]
 citizen_logs_col = db["citizen_access_logs"]  # stores login/logout events
+unanswered_questions_col = db["unanswered_questions"] # stores questions not in DB
 
 # Directories
 os.makedirs("data", exist_ok=True)
@@ -212,6 +216,57 @@ def cosine_sim(a, b):
     norm_a = np.linalg.norm(a, axis=1, keepdims=True)
     norm_b = np.linalg.norm(b, axis=1, keepdims=True)
     return np.dot(a, b.T) / (norm_a * norm_b.T)
+
+# ---------------- Email Utility ----------------
+def _send_email_base(to_email, subject, body):
+    """Base helper to send email using configured SMTP settings"""
+    smtp_server = os.getenv("MAIL_SERVER", "smtp.gmail.com")
+    smtp_port = int(os.getenv("MAIL_PORT", 587))
+    smtp_user = os.getenv("MAIL_USERNAME")
+    smtp_pwd = os.getenv("MAIL_PASSWORD")
+    
+    if not smtp_user or not smtp_pwd:
+        logger.warning(f"Email credentials missing. Could not send '{subject}' to {to_email}")
+        return False
+
+    msg = MIMEMultipart()
+    msg['From'] = f"Citizen Portal <{smtp_user}>"
+    msg['To'] = to_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        # Port 465 is typically for SMTP_SSL
+        if smtp_port == 465:
+            server = smtplib.SMTP_SSL(smtp_server, smtp_port, timeout=10)
+        else:
+            server = smtplib.SMTP(smtp_server, smtp_port, timeout=10)
+            server.starttls()
+            
+        server.login(smtp_user, smtp_pwd)
+        server.send_message(msg)
+        server.quit()
+        logger.info(f"Email '{subject}' successfully sent to {to_email}")
+        return True
+    except Exception as e:
+        logger.error(f"SMTP Error sending '{subject}' to {to_email}: {e}")
+        return False
+
+def send_verification_email(to_email, token):
+    """Sends a welcome/verification email to the user"""
+    base_url = request.url_root.rstrip('/')
+    verify_link = f"{base_url}/api/citizen/verify/{token}"
+    subject = "Welcome to Citizen Portal - Verify Your Account"
+    body = f"Hello,\n\nWelcome to the Sri Lankan Citizen Portal. Please verify your email at:\n{verify_link}\n\nThank you!"
+    return _send_email_base(to_email, subject, body)
+
+def send_reset_password_email(to_email, token):
+    """Sends a password reset email to the user"""
+    base_url = request.url_root.rstrip('/')
+    reset_link = f"{base_url}/citizen/reset-password/{token}"
+    subject = "Reset Your Citizen Portal Password"
+    body = f"Hello,\n\nWe received a request to reset your password. Click the link below to set a new one:\n{reset_link}\n\nThis link expires in 1 hour."
+    return _send_email_base(to_email, subject, body)
 
 # ---------------- Decorators ----------------
 def admin_required(fn):
@@ -342,9 +397,16 @@ def citizen_register():
         return jsonify({"error": "Name, email and password are required."}), 400
     if len(password) < 8:
         return jsonify({"error": "Password must be at least 8 characters."}), 400
+    # Valid Gmail check (optional but requested)
+    if not email.endswith("@gmail.com"):
+        return jsonify({"error": "Please use a valid @gmail.com address for registration."}), 400
+
     if users_col.find_one({"email": email, "sample_data": {"$ne": True}}):
         return jsonify({"error": "An account with this email already exists."}), 409
+    
+    verification_token = secrets.token_urlsafe(32)
     hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+    
     res = users_col.insert_one({
         "email": email,
         "password": hashed,
@@ -354,7 +416,13 @@ def citizen_register():
         "sample_data": False,
         "role": "citizen",
         "active": True,
+        "is_verified": True,
+        "verification_token": verification_token
     })
+
+    # Send verification email
+    email_sent = send_verification_email(email, verification_token)
+
     citizen_logs_col.insert_one({
         "user_id": str(res.inserted_id),
         "email": email,
@@ -363,8 +431,84 @@ def citizen_register():
         "ip": request.remote_addr,
         "timestamp": datetime.now(timezone.utc)
     })
+    
     logger.info(f"New citizen registered: {email}")
-    return jsonify({"status": "ok", "message": "Account created successfully."}), 201
+    msg = "Account created successfully! You can now log in."
+    return jsonify({"status": "ok", "message": msg}), 201
+
+@app.route("/api/citizen/verify/<token>", methods=["GET"])
+@handle_errors
+def citizen_verify(token):
+    user = users_col.find_one({"verification_token": token})
+    if not user:
+        return render_template("verify_result.html", success=False, message="Invalid or expired verification token.")
+    
+    users_col.update_one({"_id": user["_id"]}, {"$set": {"is_verified": True, "verification_token": None}})
+    logger.info(f"User verified: {user['email']}")
+    return render_template("verify_result.html", success=True, message="Email verified successfully! You can now log in.")
+
+@app.route("/api/citizen/forgot-password", methods=["POST"])
+@handle_errors
+def citizen_forgot_password():
+    data = request.json or {}
+    email = data.get("email", "").strip().lower()
+    if not email:
+        return jsonify({"error": "Email is required."}), 400
+    
+    user = users_col.find_one({"email": email, "sample_data": {"$ne": True}})
+    if not user:
+        # Security best practice: don't reveal if account exists
+        return jsonify({"status": "ok", "message": "If an account exists with this email, a reset link has been sent."})
+    
+    reset_token = secrets.token_urlsafe(32)
+    expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+    
+    users_col.update_one({"_id": user["_id"]}, {
+        "$set": {
+            "reset_token": reset_token,
+            "reset_token_expiry": expiry
+        }
+    })
+    
+    send_reset_password_email(email, reset_token)
+    return jsonify({"status": "ok", "message": "If an account exists with this email, a reset link has been sent."})
+
+@app.route("/citizen/reset-password/<token>", methods=["GET"])
+def citizen_reset_password_page(token):
+    user = users_col.find_one({
+        "reset_token": token,
+        "reset_token_expiry": {"$gt": datetime.now(timezone.utc)}
+    })
+    if not user:
+        return render_template("verify_result.html", success=False, message="Invalid or expired reset token.")
+    return render_template("reset_password.html", token=token)
+
+@app.route("/api/citizen/reset-password", methods=["POST"])
+@handle_errors
+def citizen_reset_password_submit():
+    data = request.json or {}
+    token = data.get("token")
+    new_password = data.get("password")
+    
+    if not token or not new_password:
+        return jsonify({"error": "Token and password are required."}), 400
+    if len(new_password) < 8:
+        return jsonify({"error": "Password must be at least 8 characters."}), 400
+        
+    user = users_col.find_one({
+        "reset_token": token,
+        "reset_token_expiry": {"$gt": datetime.now(timezone.utc)}
+    })
+    if not user:
+        return jsonify({"error": "Invalid or expired reset token."}), 400
+        
+    hashed = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt())
+    users_col.update_one({"_id": user["_id"]}, {
+        "$set": {"password": hashed, "reset_token": None, "reset_token_expiry": None}
+    })
+    
+    logger.info(f"Password reset successful for: {user['email']}")
+    return jsonify({"status": "ok", "message": "Password reset successful. You can now log in."})
 
 @app.route("/api/citizen/login", methods=["POST"])
 @handle_errors
@@ -377,6 +521,7 @@ def citizen_login():
     user = users_col.find_one({"email": email, "sample_data": {"$ne": True}})
     if not user:
         return jsonify({"error": "No account found with this email."}), 401
+
     stored_pwd = user.get("password")
     if isinstance(stored_pwd, bytes):
         ok = bcrypt.checkpw(password.encode("utf-8"), stored_pwd)
@@ -883,8 +1028,50 @@ def ai_search():
                     })
 
     if not hits:
+        # ── Last Resort: LLM General Knowledge Fallback ──
+        if AI_AVAILABLE:
+            try:
+                model = genai.GenerativeModel('gemini-1.5-flash')
+                prompt = f"""
+                You are the Sri Lankan Citizen Portal AI Assistant.
+                The user asked: "{query}"
+                
+                I could not find a specific answer in the official government database.
+                Provide a general, helpful, and polite response based on your general knowledge of Sri Lankan government processes.
+                
+                IMPORTANT:
+                - Start with: "I couldn't find a specific official document for this in my database, but here is some general information:"
+                - Keep it concise.
+                - Advise the user to verify with the relevant ministry (e.g. Ministry of Health, DRP, etc.) if they need official confirmation.
+                - If the question is completely irrelevant to government services, politely say you can only assist with citizen portal and government service related questions.
+                """
+                response = model.generate_content(prompt)
+                ai_answer = response.text
+                
+                # Log this for admin review
+                unanswered_questions_col.insert_one({
+                    "query": query,
+                    "timestamp": datetime.now(timezone.utc),
+                    "user_id": request.headers.get("X-Citizen-Id"),
+                    "ai_fallback_provided": True
+                })
+                
+                return jsonify({
+                    "answer": ai_answer,
+                    "downloads": [], "location": "", "instructions": "", "is_ai_fallback": True
+                })
+            except Exception as e:
+                logger.error(f"Gemini fallback failed: {e}")
+
+        # Final fallback if even Gemini fails or is unavailable
+        unanswered_questions_col.insert_one({
+            "query": query,
+            "timestamp": datetime.now(timezone.utc),
+            "user_id": request.headers.get("X-Citizen-Id"),
+            "ai_fallback_provided": False
+        })
         return jsonify({
-            "answer": "I couldn't find specific information about your question. Please try rephrasing or browse the categories on the left.",
+            "answer": "I couldn't find specific information about your question in the portal database. I have recorded your question for our team to improve our service. Please try rephrasing or visit a regional government office.",
             "downloads": [], "location": "", "instructions": ""
         })
 

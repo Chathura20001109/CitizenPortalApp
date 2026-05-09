@@ -317,6 +317,9 @@
                         <button class="pwd-toggle" type="button" onclick="togglePwd('login-password', this)">👁</button>
                     </div>
                 </div>
+                <div style="text-align: right; margin-top: -12px; margin-bottom: 18px;">
+                    <a href="#" onclick="doForgot()" style="font-size: 0.8rem; color: var(--secondary); text-decoration: none;">Forgot Password?</a>
+                </div>
                 <button class="btn btn-primary" id="login-btn" onclick="doLogin()">
                     <span id="login-label">Login to Portal</span>
                     <div class="spinner" id="login-spinner"></div>
@@ -396,7 +399,39 @@
         <div style="height:20px;"></div>
     </div>
 
+
+
     <script>
+        async function doForgot() {
+            hideAlerts('login-error', 'login-success');
+            const email = document.getElementById('login-email').value.trim();
+            if (!email) { 
+                showAlert('login-error', 'Please enter your Gmail address in the field above to receive a reset link.'); 
+                document.getElementById('login-email').focus();
+                return; 
+            }
+            
+            // Show a temporary "sending" state on the forgot link if possible, or just use login spinner
+            setLoading('login-btn', 'login-spinner', 'login-label', true);
+            
+            try {
+                const res = await fetch('/api/citizen/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showAlert('login-success', '✓ Reset link sent! Please check your Gmail inbox.');
+                } else {
+                    showAlert('login-error', data.error || 'Failed to request reset.');
+                }
+            } catch (e) {
+                showAlert('login-error', 'Connection error. Please try again.');
+            }
+            setLoading('login-btn', 'login-spinner', 'login-label', false);
+        }
+
         function switchTab(tab) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -478,7 +513,11 @@
                 const data = await res.json();
                 if (res.ok) {
                     showAlert('reg-success', '✓ Account created! You can now login.');
-                    setTimeout(() => switchTab('login'), 1500);
+                    setTimeout(() => switchTab('login'), 2000);
+                    // Clear form
+                    document.getElementById('reg-email').value = '';
+                    document.getElementById('reg-password').value = '';
+                    document.getElementById('reg-confirm').value = '';
                 } else {
                     showAlert('reg-error', data.error || 'Registration failed. Try again.');
                 }

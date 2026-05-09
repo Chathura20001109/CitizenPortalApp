@@ -57,6 +57,7 @@ def create_indexes():
         products_col.create_index("id", unique=True)
         officers_col.create_index("id", unique=True)
         admins_col.create_index("username", unique=True)
+        users_col.create_index("email", unique=True)
         users_col.create_index("sample_data")
         users_col.create_index("created")
         products_col.create_index("tags")
