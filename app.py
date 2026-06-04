@@ -28,6 +28,7 @@ from pymongo.errors import ServerSelectionTimeoutError
 import bcrypt
 import numpy as np
 from bson import ObjectId
+import certifi
 
 try:
     import google.generativeai as genai
@@ -165,7 +166,8 @@ class MockMongoClient:
 
 try:
     if MONGO_URI:
-        client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+        client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000, tlsCAFile=certifi.where())
+        client.admin.command('ping')
         logger.info("MongoDB client created")
     else:
         logger.warning("No MONGO_URI provided, skipping real connection.")
@@ -333,6 +335,10 @@ def home():
 def citizen_login_page():
     return render_template("citizen_login.html")
 
+@app.route("/citizen/register")
+def citizen_register_page():
+    return render_template("citizen_register.html")
+
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
@@ -392,6 +398,7 @@ def citizen_register():
     interests = data.get("interests", "").strip()
     job = data.get("job", "").strip()
     education = data.get("education", "").strip()
+    user_type = data.get("user_type", "").strip()
 
     if not name or not email or not password:
         return jsonify({"error": "Name, email and password are required."}), 400
@@ -411,7 +418,7 @@ def citizen_register():
         "email": email,
         "password": hashed,
         "profile": {"basic": {"name": name, "age": age, "phone": phone}},
-        "extended_profile": {"interests": interests, "employment": {"job": job, "education": education}},
+        "extended_profile": {"interests": interests, "employment": {"job": job, "education": education}, "user_type": user_type},
         "created": datetime.now(timezone.utc),
         "sample_data": False,
         "role": "citizen",
@@ -701,11 +708,40 @@ def get_service(service_id):
 @app.route("/api/admin/ads/seed", methods=["POST"])
 def seed_ads():
     new_ads = [
-        {"id": "ad_al_university", "title": "University Admissions for A/L Students", "content": "Applications for the upcoming university intake are now open for all A/L students. Apply online.", "target_segments": ["al", "student", "a/l", "education", "school"], "active": True, "link": "https://ugc.ac.lk/"},
-        {"id": "ad_al_zscore", "title": "A/L Z-Score Released", "content": "The A/L Z-scores for 2023 have been released. Check your eligibility for university courses.", "target_segments": ["al", "student", "a/l", "university", "school"], "active": True, "link": "https://doenets.lk/"},
-        {"id": "ad_business_tax", "title": "SME Tax Exemptions", "content": "Small and Medium Enterprises can now apply for the new digital tax exemption scheme.", "target_segments": ["business", "sme", "entrepreneur", "career", "professional"], "active": True, "link": "http://www.ird.gov.lk/"},
-        {"id": "ad_senior_pension", "title": "Digital Pension Registration", "content": "Retirees can now register their pension details fully online via the Citizen Portal.", "target_segments": ["senior", "retiree", "pension", "elderly"], "active": True, "link": "https://www.pensions.gov.lk/"},
-        {"id": "ad_housing_loans", "title": "Government Housing Loans", "content": "Low-interest housing loans available for first-time home buyers. Check your eligibility today.", "target_segments": ["housing", "family", "married", "professional"], "active": True, "link": "https://www.smib.lk/"}
+        # Student Ads
+        {"id": "ad_al_university", "title": "University Admissions for A/L Students", "content": "Applications for the upcoming university intake are now open for all A/L students. Apply online.", "target_segments": ["al", "student", "education"], "active": True, "link": "https://ugc.ac.lk/"},
+        {"id": "ad_student_laptop", "title": "Government Laptop Subsidy", "content": "Special subsidized laptop scheme for university and vocational students. Check eligibility.", "target_segments": ["student", "education", "university"], "active": True, "link": "https://mohe.gov.lk/"},
+        {"id": "ad_student_scholarship", "title": "Mahapola Scholarship Applications", "content": "The Mahapola Higher Education Scholarship applications are now open for the new academic year.", "target_segments": ["student", "university", "scholarship"], "active": True, "link": "https://mahapola.lk/"},
+        
+        # Business Ads
+        {"id": "ad_business_tax", "title": "SME Tax Exemptions", "content": "Small and Medium Enterprises can now apply for the new digital tax exemption scheme.", "target_segments": ["business", "sme", "entrepreneur"], "active": True, "link": "http://www.ird.gov.lk/"},
+        {"id": "ad_business_export", "title": "Export Development Grants", "content": "The EDB is offering special grants to local SMEs aiming to export Sri Lankan products.", "target_segments": ["business", "export", "sme"], "active": True, "link": "https://www.srilankabusiness.com/"},
+        {"id": "ad_business_registration", "title": "Digital Business Registration", "content": "Register your new company completely online within 24 hours via the e-ROC portal.", "target_segments": ["business", "entrepreneur", "startup"], "active": True, "link": "https://eroc.drc.gov.lk/"},
+        
+        # Doctor Ads
+        {"id": "ad_doctor_health", "title": "Advanced Medical Equipment Grants", "content": "Special government grants are available for medical professionals and clinics to upgrade their equipment.", "target_segments": ["doctor", "health", "medical"], "active": True, "link": "https://www.health.gov.lk/"},
+        {"id": "ad_doctor_training", "title": "Overseas Fellowship Program", "content": "Applications open for the Ministry of Health overseas fellowship for senior medical officers.", "target_segments": ["doctor", "medical", "hospital"], "active": True, "link": "https://www.health.gov.lk/"},
+        {"id": "ad_doctor_pgim", "title": "PGIM New Course Intake", "content": "The Postgraduate Institute of Medicine has published the schedule for upcoming MD selection exams.", "target_segments": ["doctor", "medical", "health"], "active": True, "link": "https://pgim.cmb.ac.lk/"},
+        
+        # Farmer Ads
+        {"id": "ad_farmer_subsidy", "title": "Agricultural Fertilizer Subsidy", "content": "The government has released the new batch of fertilizer subsidies. Register your lands today.", "target_segments": ["farmer", "agriculture"], "active": True, "link": "https://www.agrimin.gov.lk/"},
+        {"id": "ad_farmer_insurance", "title": "Free Crop Insurance Scheme", "content": "Register for the free government crop insurance for the upcoming Maha cultivation season.", "target_segments": ["farmer", "agriculture", "cultivation"], "active": True, "link": "https://www.agrimin.gov.lk/"},
+        {"id": "ad_farmer_equipment", "title": "Subsidized Tractors for Farmers", "content": "Registered farmer societies can now apply for 50% subsidized agricultural machinery.", "target_segments": ["farmer", "agriculture"], "active": True, "link": "https://www.doa.gov.lk/"},
+        
+        # Teacher Ads
+        {"id": "ad_teacher_training", "title": "National Teacher Training Program", "content": "Enroll in the upcoming national teacher training workshops for digital classroom tools.", "target_segments": ["teacher", "education", "school"], "active": True, "link": "https://moe.gov.lk/"},
+        {"id": "ad_teacher_transfer", "title": "Annual Teacher Transfers", "content": "The National Teacher Transfer Board is now accepting applications for the next academic year.", "target_segments": ["teacher", "school", "education"], "active": True, "link": "https://moe.gov.lk/"},
+        {"id": "ad_teacher_pgde", "title": "PGDE Intake 2026", "content": "Applications for the Postgraduate Diploma in Education (PGDE) are now available online.", "target_segments": ["teacher", "education"], "active": True, "link": "https://nie.lk/"},
+        
+        # Engineer Ads
+        {"id": "ad_engineer_projects", "title": "Public Works Tenders Opened", "content": "The Ministry of Engineering Services has opened new tenders for infrastructure development.", "target_segments": ["engineer", "construction", "infrastructure"], "active": True, "link": "https://www.treasury.gov.lk/"},
+        {"id": "ad_engineer_renewable", "title": "Renewable Energy Project Grants", "content": "The Sustainable Energy Authority is providing grants for innovative solar and wind projects.", "target_segments": ["engineer", "energy", "infrastructure"], "active": True, "link": "https://www.energy.gov.lk/"},
+        {"id": "ad_engineer_certification", "title": "Chartered Engineer Workshop", "content": "IESL is hosting a mandatory workshop for associate engineers seeking chartered status.", "target_segments": ["engineer", "professional", "construction"], "active": True, "link": "https://iesl.lk/"},
+        
+        # General / Other Ads
+        {"id": "ad_general_update", "title": "Citizen Digital ID Rollout", "content": "The new digital citizen ID card applications are now open for everyone. Update your profile.", "target_segments": ["other", "all_citizens"], "active": True, "link": "https://drp.gov.lk/"},
+        {"id": "ad_general_passport", "title": "New E-Passport Services", "content": "Apply for the biometric e-passport online and get it delivered to your home within 3 days.", "target_segments": ["other", "all_citizens"], "active": True, "link": "https://www.immigration.gov.lk/"},
+        {"id": "ad_general_election", "title": "Voter Registration Verification", "content": "Verify your name in the upcoming electoral register through the online portal.", "target_segments": ["other", "all_citizens"], "active": True, "link": "https://elections.gov.lk/"}
     ]
     for ad in new_ads:
         ads_col.update_one({"id": ad["id"]}, {"$set": ad}, upsert=True)
@@ -729,9 +765,11 @@ def get_ads():
             ext_prof = user.get("extended_profile", {})
             job = ext_prof.get("employment", {}).get("job", "")
             education = ext_prof.get("employment", {}).get("education", "")
+            user_type = ext_prof.get("user_type", "")
             interests = ext_prof.get("interests", "")
             if job: keywords.extend(job.lower().split())
             if education: keywords.extend(education.lower().split())
+            if user_type: keywords.extend(user_type.lower().split())
             if interests: keywords.extend(interests.lower().replace(",", " ").split())
             
             basic_prof = user.get("profile", {}).get("basic", {})
@@ -741,27 +779,50 @@ def get_ads():
             user_text = " ".join([job, education, interests] + keywords).strip()
             
             if user_text:
-                try:
-                    # Using Gemini API for embeddings
-                    user_emb = get_embeddings([user_text])
+                # Rule-Based Matching Algorithm
+                job_lower = job.lower().strip() if job else ""
+                user_type_lower = user_type.lower().strip() if user_type else ""
+                user_text_lower = user_text.lower()
+                
+                for a in ads:
+                    a["relevance_score"] = 0
+                    segments = a.get("target_segments", [])
                     
-                    if user_emb is not None:
-                        ad_texts = []
-                        for a in ads:
-                            a_text = f"{a.get('title', '')} {a.get('content', '')} {' '.join(a.get('target_segments', []))}"
-                            ad_texts.append(a_text)
-                            
-                        ad_embs = get_embeddings(ad_texts)
-                        if ad_embs is not None:
-                            # Using custom cosine_sim
-                            sims = cosine_sim(user_emb, ad_embs)[0]
-                            
-                            for i, a in enumerate(ads):
-                                a["relevance_score"] = float(sims[i]) * 100
+                    # Exact job or user type match (e.g., student -> student ads, doctor -> doctor ads)
+                    if (job_lower and job_lower in segments) or (user_type_lower and user_type_lower in segments):
+                        a["relevance_score"] += 200
+                    # Partial keyword match from profile
+                    elif any(seg in user_text_lower for seg in segments):
+                        a["relevance_score"] += 100
+
+                # AI Fallback: Enhance scores using Embeddings if AI is available
+                if AI_AVAILABLE:
+                    try:
+                        user_emb = get_embeddings([user_text])
+                        
+                        if user_emb is not None:
+                            ad_texts = []
+                            for a in ads:
+                                a_text = f"{a.get('title', '')} {a.get('content', '')} {' '.join(a.get('target_segments', []))}"
+                                ad_texts.append(a_text)
                                 
-                            ads.sort(key=lambda x: x.get("relevance_score", 0), reverse=True)
-                except Exception as e:
-                    logger.error(f"Error in ad recommendation: {e}")
+                            ad_embs = get_embeddings(ad_texts)
+                            if ad_embs is not None:
+                                sims = cosine_sim(user_emb, ad_embs)[0]
+                                
+                                for i, a in enumerate(ads):
+                                    # Add AI similarity score (0 to 100) to the rule-based score
+                                    a["relevance_score"] += float(sims[i]) * 100
+                                    
+                    except Exception as e:
+                        logger.error(f"Error in ad recommendation: {e}")
+                        
+                # Filter out ads that have NO relevance if user is logged in
+                # to ensure they don't see common ads for all users.
+                ads = [a for a in ads if a.get("relevance_score", 0) > 10]
+                
+                # Sort ads based on final relevance score
+                ads.sort(key=lambda x: x.get("relevance_score", 0), reverse=True)
                     
     return jsonify(ads)
 
